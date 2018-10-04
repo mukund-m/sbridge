@@ -1,0 +1,212 @@
+<div class="page-title d-flex align-items-center justify-content-between text-thin">
+  Users
+  <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearUserForm(); open(addUser)"><svg><use xlink:href="#add-icon"></use></svg>Add User</div>
+</div>
+<ng-template #addUser let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{isEditing ? 'Edit' : 'Add'}} user</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearUserForm()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h6 *ngIf="modalFailure">Oops!</h6>
+      <h6 *ngIf="modalSuccess">Yay!</h6>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <form [formGroup]="userForm" *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container">
+        <input type="text" formControlName="firstName" name="first-name" placeholder="First Name" [ngClass]="{error: submitted && !userForm.controls['firstName'].valid}">
+        <div *ngIf="submitted && !userForm.controls['firstName'].valid" class="input-error">
+          A first name is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#user-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="text" formControlName="lastName" name="last-name" placeholder="Last Name" [ngClass]="{error: submitted && !userForm.controls['lastName'].valid}">
+        <div *ngIf="submitted && !userForm.controls['lastName'].valid" class="input-error">
+          A lastName is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#user-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="text" formControlName="email" name="email" placeholder="Email" [ngClass]="{error: submitted && !userForm.controls['email'].valid}">
+        <div *ngIf="submitted && !userForm.controls['email'].valid" class="input-error">
+          A valid email address is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#email-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="_authenticationService.user.role === 'administrator'">
+       <select formControlName="client_id">
+         <option value="" *ngIf="!fetchingClients" selected disabled>Client</option>
+         <option *ngFor="let client of clients" [ngValue]="client._id">{{client.name}}</option>
+       </select>
+        <div *ngIf="submitted && !userForm.controls['client_id'].valid" class="input-error">
+          A client is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#client-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container">
+        <select [formControl]="userForm.controls.role">
+          <option value="" disabled selected>Role</option>
+          <option value="user">User</option>
+          <option value="client" *ngIf="_authenticationService.user.role === 'administrator'">Client</option>
+          <option value="administrator" *ngIf="_authenticationService.user.role === 'administrator'">Administrator</option>
+        </select>
+        <div *ngIf="submitted && !userForm.controls['role'].valid" class="input-error">
+          A user role is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#role-icon"></use></svg>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearUserForm(); c('Close click')" [disabled]="modalLoading">Close</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitForm()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Save</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearUserForm()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+<ng-template #confirmDelete let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm User Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearUserForm()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h6 *ngIf="modalFailure">Oops!</h6>
+      <h6 *ngIf="modalSuccess">Yay!</h6>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{modalResultMessage}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalSuccess && !modalFailure">Are you sure you'd like to remove {{selectedUser?.firstName}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" *ngIf="!modalFailure && !modalSuccess && !modalLoading" (click)="removeUser()">Yes</button>
+    <button type="button" class="btn btn-outline-dark" *ngIf="modalFailure && !modalSuccess && !modalLoading" (click)="clearUserForm()">Retry</button>
+    <button type="button" class="btn btn-outline-dark" [disabled]="modalLoading" (click)="c('Close click'); clearUserForm()">Close</button>
+  </div>
+</ng-template>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{modalResultMessage}}</h6>
+  </div>
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-content-container">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="search-input-container">
+          <div class="input-icon"><svg><use xlink:href="#search-icon"></use></svg></div>
+          <input class="search-input" type="text" name="search" placeholder="Search Users..." (keyup)="updateGetUsers($event)" [(ngModel)]="searchParam">
+        </div>
+      </div>
+      <div class="col-12" *ngIf="getRole() === 'administrator'">
+        <div class="row">
+          <div class="col-12 col-md-6 col-lg-3">
+            <select class="filter-client" name="selectedClient" [(ngModel)]="selectedClient" (change)="updateGetUsersWithoutKey()">
+              <option [ngValue]="undefined">From all Clients</option>
+              <option *ngFor="let client of clients" [ngValue]="client">{{client.name}}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="space-20"></div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4 col-xl-3" *ngFor="let user of users">
+        <div class="user-profile-container bottom-shadow text-center">
+          <div class="user-profile" routerLink="/dashboard/users/{{user._id}}">
+            
+            <div class="user-profile-name">{{user?.firstName}} {{user?.lastName}}</div>
+            <div class="user-profile-client">{{user?.client?.name}}</div>
+            <div class="user-profile-client" *ngIf="getRole() === 'administrator' || getRole() === 'client'">{{user.email}}</div>
+            <div class="user-profile-role" [ngStyle]="{'color': themeService.color?.primaryColor}">{{user.role}}</div>
+          </div>
+          <ul class="user-profile-links">
+            <li class="user-profile-link delete" *ngIf="getRole() === 'administrator' || getRole() === 'client'" (click)="selectedUser = user; open(confirmDelete)">Delete User</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-12" *ngIf="fetchingResults">
+        <div class="full-width text-center">
+          <div class="spinner">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          </div>
+          <h3 class="text-thin">Fetching results...</h3>
+        </div>
+      </div>
+      <div class="col-12" *ngIf="isSearched && !users.length && !fetchingResults && !loading">
+        <div class="no-results full-width d-flex justify-content-center align-items-center">
+          <div class="div">
+            <div class="no-results-icon"><svg><use xlink:href="#time-icon"></use></svg></div>
+            <h3 class="text-thin">Oops!</h3>
+            <p>No results found for '{{searchParam}}'</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

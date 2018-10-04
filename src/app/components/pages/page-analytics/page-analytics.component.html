@@ -1,0 +1,93 @@
+<div class="page-title d-flex align-items-center text-thin">
+  Analytics
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-content-container">
+  <div class="container-fluid no-padding">
+    <div class="row" *ngIf="getRole() === 'administrator'">
+      <div class="col-12 col-md-6 col-lg-3">
+        <select class="filter-client" name="selectedClient" [(ngModel)]="selectedClient" (change)="getData()">
+          <option [ngValue]="undefined">From all Clients</option>
+          <option *ngFor="let client of clients" [ngValue]="client">{{client.name}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" *ngIf="!loading">
+      <div class="col-12">
+        <div class="heatmap">
+          <ngx-charts-heat-map
+            [view]="viewheat"
+            [scheme]="colorSchemeheat"
+            [results]="heatData"
+            [legend]="showLegendheat"
+            [legendTitle]="showLegendTitleheat"
+            [gradient]="gradientheat"
+            [xAxis]="showXAxisheat"
+            [yAxis]="showYAxisheat"
+            [showXAxisLabel]="showXAxisLabelheat"
+            [showYAxisLabel]="showYAxisLabelheat"
+            [xAxisLabel]="xAxisLabelheat"
+            [yAxisLabel]="yAxisLabelheat"
+            (select)="onSelect($event)">
+          </ngx-charts-heat-map>
+        </div>
+      </div>
+    </div>
+    <!--<div>-->
+    <!--<button class="button" [ngStyle]="{'background': themeService.color?.primaryColor}">Load More</button>-->
+    <!--</div>-->
+    <hr>
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="linechart">
+          <ngx-charts-line-chart
+            [view]="viewline"
+            [scheme]="colorSchemeline"
+            [results]="lineData"
+            [gradient]="gradientline"
+            [xAxis]="showXAxisline"
+            [yAxis]="showYAxisline"
+            [legend]="showLegendline"
+            [legendTitle]="showLegendTitleline"
+            [showXAxisLabel]="showXAxisLabelline"
+            [showYAxisLabel]="showYAxisLabelline"
+            [xAxisLabel]="xAxisLabelline"
+            [yAxisLabel]="yAxisLabelline"
+            [autoScale]="autoScaleline"
+            (select)="onSelect($event)">
+          </ngx-charts-line-chart>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="bargraph">
+          <ngx-charts-bar-vertical-2d
+            [view]="view1"
+            [scheme]="colorScheme1"
+            [results]="meanData"
+            [gradient]="gradient1"
+            [xAxis]="showXAxis1"
+            [yAxis]="showYAxis1"
+            [legend]="showLegend1"
+            [legendTitle]="showLegendTitle1"
+            [showXAxisLabel]="showXAxisLabel1"
+            [showYAxisLabel]="showYAxisLabel1"
+            [xAxisLabel]="xAxisLabel1"
+            [yAxisLabel]="yAxisLabel1"
+            (select)="onSelect($event)">
+          </ngx-charts-bar-vertical-2d>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

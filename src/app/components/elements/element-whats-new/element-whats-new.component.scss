@@ -1,0 +1,32 @@
+.whats-new-container {
+  width: 100%;
+
+  .whats-new {
+    &:not(:last-of-type) {
+      border-bottom: 1px solid #ECEFF1;
+    }
+  }
+
+  .module-new {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 100;
+    font-size: 1.2em;
+    color: #607D8B;
+
+    .module-new-content {
+      padding: 0 20px;
+    }
+  }
+
+  .module-icon {
+    width: 70px;
+    height: 70px;
+    padding: 15px;
+    fill: #fff;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

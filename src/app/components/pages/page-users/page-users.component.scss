@@ -1,0 +1,68 @@
+.filter-client {
+  border:1px solid #B0BEC5;
+  padding: 10px 10px 10px 50px;
+  background-position-y: 10px;
+}
+
+.user-profile-container {
+  background: #fff;
+  margin-bottom: 20px;
+
+  .user-profile-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: #90A4AE;
+    margin: 0 auto 30px auto;
+  }
+
+  .user-profile-name {
+    font-size: 1.1em;
+    font-family: 'Roboto', sans-serif;
+    color: #607D8B;
+  }
+
+  .user-profile-client,
+  .user-profile-role {
+    font-size: 0.9em;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 100;
+    color: #78909C;
+  }
+
+  .user-profile-role {
+    font-weight: 400;
+  }
+
+  .user-profile {
+    padding: 30px;
+    cursor: pointer;
+  }
+
+  .user-profile-links {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    display: table;
+
+    .user-profile-link {
+      display: table-cell;
+      padding: 15px;
+      color: #78909C;
+      border-top: 1px solid #ECEFF1;
+      cursor: pointer;
+
+      &:not(:last-of-type) {
+        border-right: 1px solid #ECEFF1;
+      }
+
+      &.delete {
+        &:hover {
+          background: #f44336;
+          color: #fff;
+          border-color: #f44336;
+        }
+      }
+    }
+  }
+}

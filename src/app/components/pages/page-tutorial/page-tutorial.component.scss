@@ -1,0 +1,36 @@
+.tutorial {
+  background: #fff;
+  border-radius: 8px;
+
+  .tutorial-hero-container {
+    width: 100%;
+    text-align: center;
+    position: relative;
+     img{
+       margin-top: 50px;
+       max-width:100%;
+       width: 50%;
+     }
+  }
+
+  .tutorial-title {
+    padding: 40px;
+    text-transform: capitalize;
+    width: 100%;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    color: #607D8B;
+    font-weight: 100;
+  }
+
+}
+.tutorial-content {
+  padding: 30px;
+  font-family: 'Open Sans', sans-serif;
+  color: #78909C;
+  font-weight: 100;
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+}

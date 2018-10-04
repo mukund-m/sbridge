@@ -1,0 +1,38 @@
+<div class="page-title d-flex align-items-center text-thin">
+  Tutorial: {{tutorial?.title}}
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{resultMessage}}</h6>
+  </div>
+</div>
+<div class="page-content-container">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col">
+        <div class="tutorial shadow-bottom">
+          <div class="tutorial-title"><h2>{{tutorial?.title}}</h2></div>
+          <div class="tutorial-content">{{tutorial?.content}}</div>
+          <div class="full-width text-center" *ngIf="tutorial?.quiz">
+            <button routerLink="/dashboard/quizzes/{{tutorial.quiz?.slug}}" [ngStyle]="{'background': themeService.color?.primaryColor}">Take the quiz</button>
+            <div class="space-20"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

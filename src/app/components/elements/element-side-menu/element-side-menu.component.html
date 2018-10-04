@@ -1,0 +1,10 @@
+<ul class="side-menu-items">
+  <li data-toggle="tooltip" data-placement="right" title="My Dashboard" class="skillbridge-icon" routerLink="/dashboard" routerLinkActive="active" [ngStyle]="{background: themeService.color.primaryColor}">
+    <svg *ngIf="!themeService.navigation.squareLogo"><use xlink:href="#skillbridge-icon"></use></svg>
+    <img *ngIf="themeService.navigation.squareLogo" [src]="themeService.navigation.squareLogo">
+  </li>
+  <li data-toggle="tooltip" data-placement="right" title="My Library" class="side-menu-item" routerLink="/dashboard/libraries" routerLinkActive="active"> <svg><use xlink:href="#library-icon"></use></svg></li>
+  <li data-toggle="tooltip" data-placement="right" title="Analytics" class="side-menu-item" routerLink="/dashboard/analytics" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#analytics-icon"></use></svg></li>
+  <li data-toggle="tooltip" data-placement="right" title="Administration" class="side-menu-item" routerLink="/dashboard/administration" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#administrator-icon"></use></svg></li>
+  <li data-toggle="tooltip" data-placement="right" title="Logout" class="side-menu-item-logout" (click)="logout()"> <svg><use xlink:href="#logout-icon"></use></svg></li>
+</ul>

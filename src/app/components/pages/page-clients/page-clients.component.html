@@ -1,0 +1,205 @@
+<div class="page-title d-flex align-items-center justify-content-between text-thin">
+  Clients
+  <div class="add-button d-flex align-items-center" (click)="isEditting = false; emptyClient(); open(addClient)"><svg><use xlink:href="#add-icon"></use></svg>Add Client</div>
+</div>
+
+<ng-template #deleteClient let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Client Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedClient.name}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeClient(selectedClient)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearContent()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #addClient let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{isEditting ? 'Edit ' + selectedClient.name : 'Add Client'}}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click');">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h6 *ngIf="modalFailure">Oops!</h6>
+      <h6 *ngIf="modalSuccess">Yay!</h6>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <form [formGroup]="addClientFormGroup" *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container">
+        <input type="text" formControlName="name" name="name" placeholder="Name" [ngClass]="{error: submitted && !addClientFormGroup.controls['name'].valid}">
+        <div *ngIf="submitted && !addClientFormGroup.controls['name'].valid" class="input-error">A name is required.</div>
+        <div class="input-icon"><svg><use xlink:href="#client-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="text" formControlName="defaultSquareLogoUrl" name="square-logo" placeholder="Square Logo Url">
+        <div class="input-icon"><svg><use xlink:href="#box-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="text" formControlName="defaultLogoUrl" name="logo" placeholder="Logo Url">
+        <div class="input-icon"><svg><use xlink:href="#box-logo-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="text" [(colorPicker)]="primaryColor" (colorPickerChange)="changeColor($event, 'primary')" formControlName="primaryColor" name="primary-color" placeholder="Primary Color">
+        <div class="input-icon"><svg><use xlink:href="#primary-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="text" [(colorPicker)]="secondaryColor" (colorPickerChange)="changeColor($event, 'secondary')" formControlName="secondaryColor" name="secondary-color" placeholder="Secondary Color">
+        <div class="input-icon"><svg><use xlink:href="#secondary-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="text" [(colorPicker)]="tertiaryColor" (colorPickerChange)="changeColor($event, 'tertiary')" formControlName="tertiaryColor" name="tertiary-color" placeholder="Tertiary color">
+        <div class="input-icon"><svg><use xlink:href="#tertiary-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <textarea type="text" formControlName="signupMessage" name="signup-message" placeholder="Signup Message"></textarea>
+        <div class="input-icon"><svg><use xlink:href="#email-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <textarea type="text" formControlName="resetMessage" name="reset-message" placeholder="ResetMessage"></textarea>
+        <div class="input-icon"><svg><use xlink:href="#email-icon"></use></svg></div>
+      </div>
+      <div class="input-container">
+        <input type="checkbox" formControlName="leaderboardEnabled">
+        Leaderboard enabled
+      </div>
+      <div class="input-container">
+        <input type="checkbox" formControlName="newsflashEnabled">
+        Newsflash enabled
+      </div>
+      <div class="input-container">
+        <input type="checkbox" formControlName="whatsNewEnabled">
+        What's new enabled
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearContent(); c('Close click')" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Close'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitClient()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure && !isEditting">Save</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitClient()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure && isEditting">Update</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearContent()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{resultMessage}}</h6>
+  </div>
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">f
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-content-container">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="search-input-container">
+          <div class="input-icon"><svg><use xlink:href="#search-icon"></use></svg></div>
+          <input class="search-input" type="text" name="search" placeholder="Search Clients..." (keyup)="updateGetClients($event); isSearched = true" [(ngModel)]="searchParam">
+        </div>
+      </div>
+      <div class="col-12" *ngIf="fetchingResults">
+        <div class="full-width text-center">
+          <div class="spinner">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          </div>
+          <h3 class="text-thin">Fetching results...</h3>
+        </div>
+      </div>
+      <div class="col-12" *ngIf="!fetchingResults && clients.length && !failure">
+        <table class="default-table">
+          <thead>
+          <tr>
+            <td>Title</td>
+            <td class="thin text-center">Modules</td>
+            <td class="thin text-center">Users</td>
+            <td class="thin text-center"></td>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let client of clients">
+            <td>{{client.name}}</td>
+            <td class="text-center">{{client.modulesCount}}</td>
+            <td class="text-center">{{client.usersCount}}</td>
+            <td class="d-flex justify-content-center">
+              <div class="hidden-option" (click)="open(deleteClient); selectedClient = client; isEditting = false;"><svg><use xlink:href="#delete-icon"></use></svg></div>
+              <div class="hidden-option" (click)="open(addClient); isEditting = true; setClient(client);"><svg><use xlink:href="#edit-icon"></use></svg></div>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-12" *ngIf="!clients.length && !fetchingResults && !loading">
+        <div class="no-results full-width d-flex justify-content-center align-items-center">
+          <div *ngIf="searchParam" class="div">
+            <div class="no-results-icon"><svg><use xlink:href="#time-icon"></use></svg></div>
+            <h3 class="text-thin">Oops!</h3>
+            <p>No results found for '{{searchParam}}'</p>
+          </div>
+          <div *ngIf="!searchParam" class="div">
+            <div class="no-results-icon"><svg><use xlink:href="#add-icon"></use></svg></div>
+            <h3 class="text-thin">Let's get adding!</h3>
+            <p>Add a client by clicking the 'Add Client' button above</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

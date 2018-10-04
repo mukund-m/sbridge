@@ -1,0 +1,96 @@
+<div class="page-title d-flex align-items-center text-thin" xmlns="http://www.w3.org/1999/html">
+  Quiz: {{quiz?.title}}
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{resultMessage}}</h6>
+  </div>
+</div>
+<div class="page-content-container d-flex align-items-center">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12 col-md-6 offset-md-3 col-lg-4 offset-md-4">
+       <div class="quiz bottom-shadow">
+         <div class="question-container" *ngIf="quiz.questions && !finalized">
+           <div class="loading-container d-flex align-items-center" *ngIf="quiz.loading">
+             <div class="full-width text-center">
+               <div class="spinner">
+                 <div class="rect1"></div>
+                 <div class="rect2"></div>
+                 <div class="rect3"></div>
+                 <div class="rect4"></div>
+                 <div class="rect5"></div>
+               </div>
+               <h3 class="text-thin">{{loadingStatus}}</h3>
+             </div>
+           </div>
+           <div class="question-title">
+             Question {{currentQuestion + 1}}
+           </div>
+           <div class="question-content">
+             {{ quiz.questions[currentQuestion]?.content }}
+             <div class="question-options" *ngIf="quiz.questions[currentQuestion]?.type === 'drop-down'">
+               <div class="input-container">
+                 <select name="meh" [(ngModel)]="quiz.questions[currentQuestion].providedAnswer">
+                   <option value="" selected disabled>Select an answer</option>
+                   <option *ngFor="let option of quiz.questions[currentQuestion].options" [ngValue]="option">{{option}}</option>
+                 </select>
+                 <div class="input-icon">
+                   <svg><use xlink:href="#quiz-icon"></use></svg>
+                 </div>
+               </div>
+             </div>
+           </div>
+           <div class="question-footer text-center" *ngIf="quiz.questions[currentQuestion]?.type === 'true-false'">
+             <button (click)="quiz.questions[currentQuestion].providedAnswer = 'true'; nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">True</button>
+             <button (click)="quiz.questions[currentQuestion].providedAnswer = 'false'; nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">False</button>
+           </div>
+           <div class="question-footer text-center" *ngIf="quiz.questions[currentQuestion]?.type === 'yes-no'">
+             <button (click)="quiz.questions[currentQuestion].providedAnswer = 'yes'; nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">Yes</button>
+             <button (click)="quiz.questions[currentQuestion].providedAnswer = 'no'; nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">No</button>
+           </div>
+           <div class="question-footer text-center" *ngIf="(quiz.questions[currentQuestion]?.type === 'drop-down') && quiz.questions[currentQuestion].providedAnswer">
+             <button (click)="nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">Next</button>
+           </div>
+         </div>
+         <div class="quiz-result d-flex align-items-center" *ngIf="quizFailure || quizSuccess">
+           <div class="full-width">
+             <div class="result-icon">
+               <svg><use xlink:href="#success-icon" *ngIf="quizSuccess"></use><use xlink:href="#failed-icon" *ngIf="quizFailure"></use></svg>
+             </div>
+             <div class="result-message">
+               <h2 *ngIf="quizSuccess || quizFailure">Quiz Complete</h2>
+               <h5 *ngIf="quizSuccess || quizFailure">You got {{[totalAnswers]}} out of {{quiz.questions.length}} correct</h5>
+               <h5 *ngIf="passedMessage" [ngStyle]="{'color': themeService.color?.primaryColor}">Congratulations you passed!</h5>
+               <h5 *ngIf="failedMessage">Better luck next time</h5>
+               <h5> {{resultPercentage | number: 0}}%</h5>
+               <div class="question-footer text-center">
+                 <button routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" (click)="resetQuiz()" *ngIf="quizFailure">Take the Quiz Again</button>
+                 <button routerLink="/dashboard/libraries" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" *ngIf="quizFailure">Back to my library</button>
+                 <button routerLink="/dashboard" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}">Back to my dashboard</button>
+               </div>
+             </div>
+             <div class="finalized">
+
+             </div>
+           </div>
+         </div>
+       </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<ng-template #updateNews let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Update News</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="input-container" *ngIf="!modalLoading && !modalSuccess && !modalFailure">
+      <textarea [(ngModel)]="clientService.currentClient.news" placeholder="News message"></textarea>
+      <div class="input-icon">
+        <svg><use xlink:href="#news-icon"></use></svg>
+      </div>
+    </div>
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearErrors()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Close'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitNewsMessage()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Save</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearErrors()" [disabled]="modalLoading" *ngIf="modalFailure || modalSuccess">Retry</button>
+  </div>
+</ng-template>
+<div class="dashboard-item-container">
+  <div class="dashboard-item">
+    <div class="newsflash-container" [ngStyle]="{'border-color': themeService.color?.primaryColor}">
+      <div class="hidden-option" *ngIf="getRole() === 'administrator' || getRole() === 'client'" (click)="open(updateNews)"><svg><use xlink:href="#edit-icon"></use></svg></div>
+      <div class="newsflash">
+        <h2>Newsflash</h2>
+        <p>{{clientService.currentClient.news || 'Why not try adding some information?'}}</p>
+      </div>
+    </div>
+  </div>
+</div>

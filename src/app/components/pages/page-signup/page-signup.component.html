@@ -1,0 +1,83 @@
+<div class="page-container d-flex align-items-center" [ngStyle]="{'background': 'url(' + themeService.body.backgroundImage + ')'}">
+  <div class="full-width">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-lg-6 offset-lg-6">
+          <div class="tile bottom-shadow">
+            <div class="loading-container d-flex align-items-center" *ngIf="loading">
+              <div class="full-width text-center">
+                <div class="spinner">
+                  <div class="rect1"></div>
+                  <div class="rect2"></div>
+                  <div class="rect3"></div>
+                  <div class="rect4"></div>
+                  <div class="rect5"></div>
+                </div>
+                <h3 class="text-thin">{{loadingStatus}}</h3>
+              </div>
+            </div>
+            <div class="tile-body">
+              <h3>Sign up</h3>
+              <h4>Create a {{clientService.currentClient?.name}} account</h4>
+              <div class="tile-result-container" *ngIf="success || failure" [ngClass]="{success: success, failure: failure}">{{resultMessage}}</div>
+              <form name="signup" [formGroup]="signupForm" (submit)="signupForm.valid ? submitForm() : null">
+                <div class="input-container">
+                  <input type="text" formControlName="firstName" name="first-name" placeholder="First Name" [ngClass]="{error: submitted && !signupForm.controls['firstName'].valid}">
+                  <div *ngIf="submitted && !signupForm.controls['firstName'].valid" class="input-error">
+                    Your first name is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#user-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="text" formControlName="lastName" name="last-name" placeholder="Last Name" [ngClass]="{error: submitted && !signupForm.controls['lastName'].valid}">
+                  <div *ngIf="submitted && !signupForm.controls['lastName'].valid" class="input-error">
+                    Your last name is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#user-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="email" formControlName="email" name="email" placeholder="Email" [ngClass]="{error: submitted && !signupForm.controls['email'].valid}">
+                  <div *ngIf="submitted && !signupForm.controls['email'].valid" class="input-error">
+                    A valid email address is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#email-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="password" formControlName="password" name="password" placeholder="Password"  [ngClass]="{error: submitted && !signupForm.controls['password'].valid}">
+                  <div *ngIf="submitted && !signupForm.controls['password'].value" class="input-error">
+                    Your password is required.
+                  </div>
+                  <div *ngIf="submitted && signupForm.controls['password'].errors" class="input-error">
+                    Passwords must be at least 6 characters long.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#password-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="password" formControlName="confirmPassword" name="confirm-password" placeholder="ConfirmPassword" [ngClass]="{error: submitted && !signupForm.controls['confirmPassword'].valid}">
+                  <div *ngIf="submitted && (signupForm.controls['confirmPassword'].value !== signupForm.controls['password'].value)" class="input-error">
+                    Your passwords do not match.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#password-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="small-text-container">
+                  <div class="small-text"><a routerLink="/signin">Already have an account?</a></div>
+                </div>
+                <button type="submit" (click)="submitted = true;" [ngStyle]="{'background': themeService.color.primaryColor}">Sign Up</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+.logout, .info, .courses {
+  color: white;
+  border-radius: 0px;
+  background-color: #b3bec5;
+  height: 60px;
+}
+
+.app-loading-container {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999999;
+  background: #fff;
+}

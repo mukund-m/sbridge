@@ -1,0 +1,27 @@
+<div *ngIf="authCheckDone">
+<app-element-navigation ></app-element-navigation>
+<div class="element-container">
+  <div class="side-menu-container d-none d-md-table-cell" *ngIf="authService.authenticated">
+    <app-element-side-menu></app-element-side-menu>
+  </div>
+  <div class="content-container">
+    <div class="mobile-menu-container d-xl-none d-lg-none d-md-none">
+      <app-element-mobile-top-menu ></app-element-mobile-top-menu>
+    </div>
+    <router-outlet></router-outlet>
+  </div>
+</div>
+<div class="app-loading-container d-flex align-items-center justify-content-center" *ngIf="navigationService.appLoading">
+  <div class="app-loading">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h2 class="text-thin text-color-light">{{navigationService.appLoadingMessage}}</h2>
+  </div>
+</div>
+
+</div>

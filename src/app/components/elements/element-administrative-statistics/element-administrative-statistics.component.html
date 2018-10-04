@@ -1,0 +1,84 @@
+<div class="row" *ngIf="loading">
+  <div class="col">
+    <div class="loading-container">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row" *ngIf="!loading">
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#user-icon"></use></svg></div>
+          <div class="title">Total Active Users</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.usersCount || 0}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2" *ngIf="statistics?.userHighestScore">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#module-icon"></use></svg></div>
+          <div class="title">Top Ranking User</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.userHighestScore.firstName}} {{statistics?.userHighestScore.lastName}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2" *ngIf="statistics?.mostPopularTutorial">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#pmodule-icon"></use></svg></div>
+          <div class="title">Most Popular Tutorial</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.mostPopularTutorial.title}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#fquiz-icon"></use></svg></div>
+          <div class="title">Quizzes Completed</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.completedQuizCount || 0}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2" *ngIf="statistics?.mostPopularVideo">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#fvideo-icon"></use></svg></div>
+          <div class="title">Most Viewed Video</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.mostPopularVideo.title}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+    <div class="administrative-tool-container bottom-shadow">
+      <div class="administrative-tool d-flex align-items-center justify-content-center">
+        <div class="full-width text-center">
+          <div class="icon"><svg><use  xlink:href="#module-added-icon"></use></svg></div>
+          <div class="title">Total Modules Added</div>
+          <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{statistics?.modulesCount || 0}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

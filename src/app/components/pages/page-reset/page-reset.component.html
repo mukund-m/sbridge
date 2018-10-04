@@ -1,0 +1,72 @@
+<div class="page-container d-flex align-items-center" [ngStyle]="{'background': 'url(' + themeService.body.backgroundImage + ')'}">
+  <div class="full-width">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-lg-6 offset-lg-6">
+          <div class="tile bottom-shadow">
+            <div class="loading-container d-flex align-items-center" *ngIf="loading">
+              <div class="full-width text-center">
+                <div class="spinner">
+                  <div class="rect1"></div>
+                  <div class="rect2"></div>
+                  <div class="rect3"></div>
+                  <div class="rect4"></div>
+                  <div class="rect5"></div>
+                </div>
+                <h3 class="text-thin">{{loadingStatus}}</h3>
+              </div>
+            </div>
+            <div class="tile-body">
+              <h3>Reset</h3>
+              <h4>Change your {{clientService.currentClient?.name}} account password.</h4>
+              <div class="tile-result-container" *ngIf="success || failure" [ngClass]="{success: success, failure: failure}">{{resultMessage}}</div>
+              <form name="reset-init" [formGroup]="resetInitForm" (submit)="resetInitForm.valid ? submitForm() : null" *ngIf="!verified">
+                <div class="input-container">
+                  <input type="email" formControlName="email" name="email" placeholder="Email" [ngClass]="{error: submitted && !resetInitForm.controls['email'].valid}">
+                  <div *ngIf="submitted && !resetInitForm.controls['email'].valid" class="input-error">
+                    A valid email address is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#email-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="small-text-container">
+                  <div class="small-text"><a routerLink="/signin">Remember your Password?</a></div>
+                </div>
+                <button type="submit" (click)="submitted = true;" [ngStyle]="{'background': themeService.color.primaryColor}">Change my password</button>
+              </form>
+              <form name="reset" [formGroup]="resetForm" (submit)="resetForm.valid ? submitResetForm() : null"  *ngIf="verified && !isReset">
+                <div class="input-container">
+                  <input type="password" formControlName="password" name="password" placeholder="Password"  [ngClass]="{error: submitted && !resetForm.controls['password'].valid}">
+                  <div *ngIf="submitted && !resetForm.controls['password'].value" class="input-error">
+                    Your password is required.
+                  </div>
+                  <div *ngIf="submitted && resetForm.controls['password'].errors" class="input-error">
+                    Passwords must be at least 6 characters long.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#password-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="password" formControlName="confirmPassword" name="confirm-password" placeholder="Confirm password"  [ngClass]="{error: submitted && !resetForm.controls['confirmPassword'].valid}">
+                  <div *ngIf="submitted && (resetForm.controls['confirmPassword'].value !== resetForm.controls['password'].value)" class="input-error">
+                    Your passwords do not match.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#password-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="small-text-container">
+                  <div class="small-text"><a routerLink="/signin">Remember your Password?</a></div>
+                </div>
+                <button type="submit" (click)="submitted = true;" [ngStyle]="{'background': themeService.color.primaryColor}">Change my password</button>
+              </form>
+              <button routerLink="/signin" *ngIf="isReset" [ngStyle]="{'background': themeService.color.primaryColor}">Sign in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="page-container d-flex align-items-center" [ngStyle]="{'background': 'url(' + themeService.body.backgroundImage + ')'}">
+  <div class="full-width">
+    <div class="container">
+      <div class="row">
+        <div class="col-12 col-lg-6 offset-lg-6">
+          <div class="tile bottom-shadow">
+            <div class="loading-container d-flex align-items-center" *ngIf="loading">
+              <div class="full-width text-center">
+                <div class="spinner">
+                  <div class="rect1"></div>
+                  <div class="rect2"></div>
+                  <div class="rect3"></div>
+                  <div class="rect4"></div>
+                  <div class="rect5"></div>
+                </div>
+                <h3 class="text-thin">{{loadingStatus}}</h3>
+              </div>
+            </div>
+            <div class="tile-body">
+              <h3>Sign in</h3>
+              <h4>Access your {{clientService.currentClient?.name}} account.</h4>
+              <div class="tile-result-container" *ngIf="success || failure" [ngClass]="{success: success, failure: failure}">{{resultMessage}}</div>
+              <form name="signin" [formGroup]="signinForm" (submit)="signinForm.valid ? submitForm() : null">
+                  <!-- <div class="input-container">
+
+                      <select class="filter-client" name="selectedClient" [(ngModel)]="selectedClient" (change)="getData()">
+                          <option [ngValue]="undefined">From all Clients</option>
+                          <option *ngFor="let client of clients" [ngValue]="client">{{client.name}}</option>
+                        </select>
+                      <input type="email" formControlName="email" name="email" placeholder="Email" [ngClass]="{error: submitted && !signinForm.controls['email'].valid}">
+                      <div *ngIf="submitted && !signinForm.controls['email'].valid" class="input-error">
+                        A valid email address is required.
+                      </div>
+                      <div class="input-icon">
+                        <svg><use xlink:href="#email-icon"></use></svg>
+                      </div>
+                    </div> -->
+
+                <div class="input-container">
+                  <input type="email" formControlName="email" name="email" placeholder="Email" [ngClass]="{error: submitted && !signinForm.controls['email'].valid}">
+                  <div *ngIf="submitted && !signinForm.controls['email'].valid" class="input-error">
+                    A valid email address is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#email-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="input-container">
+                  <input type="password" formControlName="password" name="password" placeholder="Password"  [ngClass]="{error: submitted && !signinForm.controls['password'].valid}">
+                  <div *ngIf="submitted && !signinForm.controls['password'].value" class="input-error">
+                    Your password is required.
+                  </div>
+                  <div class="input-icon">
+                    <svg><use xlink:href="#password-icon"></use></svg>
+                  </div>
+                </div>
+                <div class="small-text-container">
+                  <div class="small-text"><a routerLink="/reset" [ngStyle]="{color: themeService.color?.primaryColor}">Forgot Password?</a></div>
+                  <div class="small-text"><a routerLink="/signup" [ngStyle]="{color: themeService.color?.primaryColor}">Don't have an account yet?</a></div>
+                </div>
+                <button type="submit" (click)="submitted = true;" [ngStyle]="{'background': themeService.color?.primaryColor}">Sign In</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

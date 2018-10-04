@@ -1,0 +1,38 @@
+.item-container {
+  width: 100%;
+
+  .item {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 100;
+    cursor: default;
+    color: #607D8B;
+    padding: 15px;
+
+    &:hover {
+      background: #ECEFF1;
+    }
+
+    &:not(:last-of-type) {
+      border-bottom: 1px solid #ECEFF1;
+    }
+  }
+
+  .rank {
+    color: #ffffff;
+    font-weight: 400;
+    font-size: 1.2em;
+  }
+
+  .item-title {
+    font-size: 1.1em;
+  }
+
+  .item-score {
+    font-size: 1.1em;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

@@ -1,0 +1,25 @@
+.tile-body {
+  h3 {
+    font-size: 1.2em;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    color: #607D8B;
+  }
+
+  h4 {
+    font-family: 'Roboto', sans-serif;
+    color: #90A4AE;
+    font-size: 1.2em;
+    font-weight: 100;
+  }
+}
+
+.loading-container {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  z-index: 2;
+}

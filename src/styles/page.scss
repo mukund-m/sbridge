@@ -1,0 +1,89 @@
+.element-container {
+  display: table;
+  width: 100%;
+
+  .page-container {
+    min-height: 100vh;
+    background-color: #ECEFF1;
+    background-size: cover;
+    background-position: center center;
+
+    .page-failure-container {
+      fill: #90A4AE;
+      color: #78909C;
+
+      height: 100%;
+    }
+  }
+
+  .dashboard-body {
+    &:not(:last-of-type) {
+      border-bottom: 1px solid #f5f6f7;
+    }
+  }
+
+  .side-menu-container
+  {
+    background: #263238;
+    width: 60px !important;
+    display: table-cell;
+    vertical-align: top;
+    height: 100vh;
+  }
+
+  .content-container {
+    vertical-align: top;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+
+  .page-content-container {
+    width: 100%;
+    min-height:calc(100vh - 80px);
+    overflow-y: scroll;
+    padding: 30px;
+    position: relative;
+  }
+
+  @media screen and (max-width: 768px) {
+    .page-content-container {
+      width: 100%;
+      min-height:calc(100vh - 160px);
+      overflow-y: scroll;
+      padding: 30px;
+      position: relative;
+    }
+  }
+
+  .page-title {
+    min-height: 80px;
+    background: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.3em;
+    color: #90A4AE;
+    padding: 0 30px;
+    position: relative;
+    z-index: 99;
+  }
+
+  .page-loading-container {
+    width: 100%;
+    height: calc(100vh - 80px);
+  }
+
+  .page-coming-soon-container {
+    width: 100%;
+    min-height: calc(100vh - 80px);
+    fill: #B0BEC5;
+
+
+    .coming-soon-icon {
+      padding: 30px;
+    }
+
+    svg {
+
+    }
+  }
+}

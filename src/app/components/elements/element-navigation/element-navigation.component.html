@@ -1,0 +1,21 @@
+<div class="navigation-container bottom-shadow" [ngClass]="{light: themeService.navigation.bg === 'light', dark: themeService.navigation.bg === 'dark'}">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="full-width d-flex justify-content-between">
+          <div class="logo-container">
+            <svg *ngIf="!themeService.navigation.logo"><use xlink:href="#skillbridge-logo" [ngStyle]="{'fill': themeService.color.primaryColor}"></use></svg>
+            <img *ngIf="themeService.navigation.logo" src="{{themeService.navigation.logo}}">
+          </div>
+          <div class="menu">
+            <button class="hamburger hamburger--spin" [ngClass]="{'is-active': navigationService.isNavigationMenuToggled}" type="button" (click)="navigationService.isNavigationMenuToggled = !navigationService.isNavigationMenuToggled">
+              <span class="hamburger-box">
+                <span class="hamburger-inner"></span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

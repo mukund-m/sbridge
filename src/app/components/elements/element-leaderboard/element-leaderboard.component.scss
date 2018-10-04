@@ -1,0 +1,51 @@
+.item-container {
+  width: 100%;
+
+  .item {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 100;
+    cursor: default;
+    width: 100%;
+    table-layout: fixed;
+
+    &:hover {
+      background: #ECEFF1;
+    }
+
+    &:not(:last-of-type) {
+      border-bottom: 1px solid #ECEFF1;
+    }
+  }
+
+  .rank {
+    color: #ffffff;
+    font-weight: 400;
+    font-size: 1.2em;
+    width: 70px;
+  }
+
+  .rank-content {
+    padding: 10px;
+  }
+
+  .item-title {
+    font-size: 1.2em;
+    color: #607D8B;
+    padding: 0 10px;
+  }
+
+  .item-score {
+    padding: 0 10px;
+    font-size: 1.2em;
+    color: #607D8B;
+
+    span {
+      margin-right: 0.2em;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

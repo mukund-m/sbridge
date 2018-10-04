@@ -1,0 +1,817 @@
+<div class="page-title d-flex align-items-center justify-content-between text-thin bottom-shadow">
+  My Library
+  <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearModule(); open(addModule)" *ngIf="getRole() === 'administrator' || getRole() === 'client'"><svg><use xlink:href="#add-icon"></use></svg><div class="add-button-text d-none d-md-flex">Add Module</div></div>
+</div>
+
+<ng-template #videoPlayer let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{selectedVideo?.title}}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="video">
+      <iframe width="100%" height="100%" allowfullscreen [src]="sanitizer.bypassSecurityTrustResourceUrl('https://www.youtube.com/embed/' + activeVideo + '?autoplay=1&modestbranding=1&showinfo=0&iv_load_policy=3&rel=0&cc_load_policy=0')"></iframe>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" *ngIf="selectedVideo.quiz" class="btn btn-outline-dark"  [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}" (click)="c('Close click'); isVideoOpen = false" routerLink="/dashboard/quizzes/{{selectedVideo.quiz?.slug}}" [disabled]="modalLoading">Take the quiz</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); isVideoOpen = false" [disabled]="modalLoading">Close</button>
+  </div>
+</ng-template>
+<ng-template #urlFrame let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{selectedUrl?.title}}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div>
+      <iframe class="url" width="100%" height="100%" allowfullscreen [src]="sanitizer.bypassSecurityTrustResourceUrl(selectedUrl.url)"></iframe>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" *ngIf="selectedUrl.quiz" class="btn btn-outline-dark"  [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}" (click)="c('Close click')" routerLink="/dashboard/quizzes/{{selectedUrl.quiz?.slug}}" [disabled]="modalLoading">Take the quiz</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click');" [disabled]="modalLoading">Close</button>
+  </div>
+</ng-template>
+<ng-template #addContent let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{isEditing ? 'Edit' : 'Add'}} Content Item</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearContent()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="newContentFormGroup" *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container" *ngIf="!isEditing">
+        <select (change)="changeContentType($event)">
+          <option [selected]="!contentType" disabled>Content Item Type</option>
+          <option value="tutorial">Tutorial</option>
+          <option value="video">Youtube Video</option>
+          <option value="file" disabled>File</option>
+          <option value="url">External URL</option>
+        </select>
+        <div class="input-icon">
+          <svg *ngIf="!contentType || contentType === 'tutorial'"><use xlink:href="#tutorials-icon"></use></svg>
+          <svg *ngIf="contentType === 'video'"><use xlink:href="#video-icon"></use></svg>
+          <svg *ngIf="contentType === 'file'"><use xlink:href="#file-icon"></use></svg>
+          <svg *ngIf="contentType === 'url'"><use xlink:href="#url-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="contentType">
+        <input type="text" formControlName="title" name="title" placeholder="Title" [ngClass]="{error: submitted && !newContentFormGroup.controls['title'].valid}">
+        <div *ngIf="submitted && !newContentFormGroup.controls['title'].valid" class="input-error">
+          Content type is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#title-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="contentType === 'tutorial'">
+        <textarea formControlName="content" placeholder="Content" [ngClass]="{error: submitted && !newContentFormGroup.controls['content'].valid}"></textarea>
+        <div *ngIf="submitted && !newContentFormGroup.controls['content'].valid" class="input-error">
+          Item content is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#tutorials-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="contentType === 'video'">
+        <input type="text" formControlName="youtubeId" name="youtube-id" placeholder="Youtube URL" [ngClass]="{error: submitted && !newContentFormGroup.controls['youtubeId'].valid}">
+        <div *ngIf="submitted && !newContentFormGroup.controls['youtubeId'].valid" class="input-error">
+          Item content is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#email-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="contentType === 'url'">
+        <input type="text" formControlName="url" name="url" placeholder="URL" [ngClass]="{error: submitted && !newContentFormGroup.controls['url'].valid}">
+        <div *ngIf="submitted && !newContentFormGroup.controls['url'].valid" class="input-error">Item content is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#url-icon"></use></svg>
+        </div>
+      </div>
+    </form>
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearContent(); c('Close click')" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Close'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitNewContentItem()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure && contentType && !isEditing">Save</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitEditContentItem()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure && contentType && isEditing">update</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearContent()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+<ng-template #addModule let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{isEditing ? 'Edit' : 'Add'}} Module</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form [formGroup]="newModuleFormGroup" *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container">
+        <input type="text" formControlName="title" name="name" placeholder="Module Title" [ngClass]="{error: submitted && !newModuleFormGroup.controls['title'].valid}">
+        <div *ngIf="submitted && !newModuleFormGroup.controls['title'].valid" class="input-error">
+          A Module title is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#library-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container" *ngIf="_authenticationService.user.role === 'administrator'">
+        <select formControlName="client">
+          <option value="" selected disabled>Select a client</option>
+          <option *ngFor="let client of clients" [ngValue]="client._id">{{client.name}}</option>
+        </select>
+        <div *ngIf="submitted && !newModuleFormGroup.controls['client'].valid" class="input-error">
+          A client is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#library-icon"></use></svg>
+        </div>
+      </div>
+    </form>
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearModule(); c('Close click')" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Close'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitNewModule()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Save</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearModule()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+<ng-template #quizBuilder let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">{{isEditing ? 'Edit' : 'Add'}} Quiz</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); isEditing = false;">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <form name="form-builder" *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container">
+        <input type="text" [(ngModel)]="quiz.title" name="title" placeholder="Title" [ngClass]="{error: submitted && !quiz.title}">
+        <div *ngIf="submitted && !quiz.title" class="input-error">
+          A Quiz title is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#title-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container">
+        <input type="number" [(ngModel)]="quiz.passPercentage" name="pass-percentage" placeholder="Pass Percentage E.g. 80%" min="0" max="100" [ngClass]="{error: submitted && (!quiz.passPercentage || (quiz.passPercentage < 0 || quiz.passPercentage > 100))}">
+        <div *ngIf="submitted && (!quiz.passPercentage || (quiz.passPercentage < 0 || quiz.passPercentage > 100))" class="input-error">
+          A valid quiz pass percentage (between 0 and 100) is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#quizzes-icon"></use></svg>
+        </div>
+      </div>
+      <div class="question-container" *ngFor="let question of quiz.questions; let i = index">
+        <div class="question-title d-flex justify-content-between align-items-center">
+          <h5>Question {{i + 1}}</h5>
+          <div ngbPopover="Delete Module" triggers="mouseenter:mouseleave" placement="left" class="add-button" *ngIf="quiz.questions.length > 1" (click)="removeQuestion(question)"><svg><use xlink:href="#delete-icon"></use></svg></div>
+        </div>
+        <div class="input-container">
+          <input type="text" [(ngModel)]="question.content" [name]="'content[' + i + ']'" placeholder="Question" [ngClass]="{error: submitted && !question.content}">
+          <div *ngIf="submitted && !question.content" class="input-error">
+            A question is required.
+          </div>
+          <div class="input-icon">
+            <svg><use xlink:href="#tutorials-icon"></use></svg>
+          </div>
+        </div>
+        <div class="input-container">
+          <input type="number" [(ngModel)]="question.pointValue" [name]="'points[' + i + ']'" placeholder="Point Value E.g. 10 Points" min="0" [ngClass]="{error: submitted && (!question.pointValue || question.pointValue < 0)}">
+          <div *ngIf="submitted && (!question.pointValue || question.pointValue < 0)" class="input-error">
+            A valid question point value is required.
+          </div>
+          <div class="input-icon">
+            <svg><use xlink:href="#tutorials-icon"></use></svg>
+          </div>
+        </div>
+        <div class="input-container">
+          <select [name]="'dropdown[' + i + ']'" (change)="initDropDownOptions($event, question)" [(ngModel)]="question.type">
+            <option value="" disabled>Answer Type</option>
+            <option [value]="'drop-down'" >Drop-down</option>
+            <option [value]="'yes-no'">Yes/No</option>
+            <option [value]="'true-false'">True/False</option>
+          </select>
+          <div class="input-icon">
+            <svg><use xlink:href="#tutorials-icon"></use></svg>
+          </div>
+          <div *ngIf="submitted && !question.type" class="input-error">
+            A question type is required.
+          </div>
+        </div>
+        <div class="dropdown-options-container" *ngIf="question.type === 'drop-down'">
+          <h5>Options:</h5>
+          <div class="row" *ngFor="let option of question.options; let j = index; trackBy: trackByFn">
+            <div class="col">
+              <div class="input-container">
+                <input type="text" [(ngModel)]="question.options[j]" [name]="'option[' + j + ']'" placeholder="Option Value" [ngClass]="{error: submitted && !option}">
+                <div *ngIf="submitted && !option" class="input-error">
+                  An option value is required.
+                </div>
+                <div class="input-icon">
+                  <svg><use xlink:href="#tutorials-icon"></use></svg>
+                </div>
+              </div>
+            </div>
+            <div class="col-2" *ngIf="question.options.length > 1" (click)="deleteOption(question.options, j)"><div class="add-button"><svg><use xlink:href="#delete-icon"></use></svg></div></div>
+          </div>
+          <div class="option-add d-flex align-items-center justify-content-center question-add" *ngIf="question.type === 'drop-down'" (click)="addDropDownOption(question)">
+            <svg><use xlink:href="#add-icon"></use></svg>Add an option
+          </div>
+        </div>
+        <div class="input-container" *ngIf="question.type">
+          <select [name]="'answer[' + i + ']'" [(ngModel)]="question.correctAnswer">
+            <option value="" disabled>Correct answer</option>
+            <option *ngIf="question.type === 'true-false'" [value]="true">True</option>
+            <option *ngIf="question.type === 'true-false'" [value]="false">False</option>
+            <option *ngIf="question.type === 'yes-no'" [value]="'yes'">Yes</option>
+            <option *ngIf="question.type === 'yes-no'" [value]="'no'">No</option>
+            <option *ngFor="let option of question.options" [ngValue]="option">{{option}}</option>
+          </select>
+          <div class="input-icon">
+            <svg><use xlink:href="#tutorials-icon"></use></svg>
+          </div>
+          <div *ngIf="submitted && !question.correctAnswer" class="input-error">
+            The answer to this question is required.
+          </div>
+        </div>
+      </div>
+      <div class="full-width d-flex align-items-center justify-content-center question-add" (click)="addQuestion()">
+        <svg><use xlink:href="#add-icon"></use></svg>Add a question</div>
+    </form>
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearQuiz(); c('Close click'); isEditing = false;" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Close'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="submitQuiz()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">{{isEditing ? 'Update' : 'Save'}}</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearModal()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+<ng-template #deleteQuiz let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Quiz Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{quiz?.title}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeQuiz(selectedItem)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #deleteModule let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Module Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedModule?.title}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeModule()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #deleteVideo let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Video Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedVideo?.title}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeVideo(selectedModule)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #deleteTutorial let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Tutorial Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedTutorial?.title}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeTutorial(selectedModule)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #deleteFile let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm File Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedfile?.name}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeFile(selectedModule)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<ng-template #deleteUrl let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Confirm Url Deletion</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearModal()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h4 *ngIf="modalSuccess">Yay!</h4>
+      <h4 *ngIf="modalFailure">Oops!</h4>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{selectedUrl?.title}} from the system? This action is irreversible.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="removeUrl(selectedModule)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
+  </div>
+</ng-template>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{resultMessage}}</h6>
+  </div>
+</div>
+<div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+  <div class="full-width text-center">
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+    <h3 class="text-thin">{{loadingStatus}}</h3>
+  </div>
+</div>
+<div class="page-failure-container" *ngIf="failure">
+  <div class="full-width text-center">
+    <svg><use xlink:href="#failure-icon"></use></svg>
+    <h3>Oops!</h3>
+    <h6>{{resultMessage}}</h6>
+    <h6>{{resultMessage}}</h6>
+  </div>
+</div>
+<div class="page-content-container" *ngIf="!loading && !failure">
+  <ul class="modules bottom-shadow" *ngIf="modules && modules.length">
+    <li class="module" *ngFor="let module of modules; let i = index">
+      <div class="module-title d-flex align-items-center justify-content-between" (click)="module.isExpanded = !module.isExpanded;
+      selectedModule = module">
+        <div class="d-flex align-items-center justify-content-md-start">
+          {{module.title}} <span class="d-none d-md-block">{{_authenticationService.user.role === 'administrator' ? '(Client: ' + module.client?.name + ')': null}}</span>
+        </div>
+        <div class="module-options d-flex justify-content-between" *ngIf="getRole() === 'administrator' || getRole() === 'client'">
+          <div class="add-button d-flex align-items-center" (click)="open(addContent); selectedModule = module; submitted = false"><svg><use xlink:href="#add-icon"></use></svg><div class="add-button-text d-none d-md-flex">Add Content Item</div></div>
+          <div class="add-button d-flex align-items-center" (click)="open(deleteModule); selectedModule = module"><svg><use xlink:href="#delete-icon"></use></svg></div>
+        </div>
+      </div>
+      <ul class="module-content-container"
+          [ngClass]="{expanded: module.isExpanded}">
+        <li class="module-content-item d-flex justify-content-between"
+            *ngFor="let video of module.videos; let j = index" >
+          <div class="d-flex align-items-center"
+               (click)="isVideoOpen = true;
+               selectedVideo = video;
+               activeVideo = video.youtubeId;
+               open(videoPlayer);
+                newView(video, module, 'video')">
+            <svg><use xlink:href="#video-icon"></use></svg>
+            {{video.title}}
+          </div>
+          <div class="module-content-options d-flex justify-content-between">
+            <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
+                 *ngIf="video.quiz" (click)="gotoQuiz(video, 'video' )">
+              <svg><use xlink:href="#quizzes-icon"></use></svg>
+              <div class="add-button-text add-button-featured">Take the quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && !video.quiz"
+                 (click)="open(quizBuilder);
+                 selectedModule = module;
+                 submitted = false;
+                 quiz.type = 'video';
+                 quiz.parent = video._id">
+              <svg><use xlink:href="#add-icon"></use></svg>
+              <div class="add-button-text">Add a quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && video.quiz"
+                 (click)="open(quizBuilder);
+                 setQuiz(video.quiz);
+                 isEditing = true;
+                 quiz.type = 'video';
+                 quiz.parent = video._id;
+                 selectedModule = module;">
+              <svg><use xlink:href="#edit-icon"></use></svg>
+              <div class="add-button-text">Edit quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && video.quiz"
+                 (click)="open(deleteQuiz);
+                 selectedItem = video;
+                 quiz = video.quiz;
+                 quiz.type = 'video';
+                 quiz.parent = video._id;
+                 selectedModule = module;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete Quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client')"
+                 (click)="open(deleteVideo);
+                 selectedVideo = video;
+                 selectedModule = module;
+                 isVideoOpen = false;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete Video</div>
+            </div>
+          </div>
+        </li>
+        <li class="module-content-item d-flex align-items-center justify-content-between"
+            *ngFor="let tutorial of module.tutorials; let j = index">
+          <div class="d-flex align-items-center" (click)="
+                newView(tutorial, module, 'tutorial')"
+               routerLink="/dashboard/tutorials/{{tutorial.slug}}">
+            <svg><use xlink:href="#tutorials-icon"></use></svg>
+            {{tutorial.title}}
+          </div>
+          <div class="module-content-options d-flex justify-content-between">
+            <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
+                 *ngIf="tutorial.quiz" routerLink="/dashboard/quizzes/{{tutorial.quiz.slug}}">
+              <svg><use xlink:href="#quizzes-icon"></use></svg>
+              <div class="add-button-text">Take the quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && !tutorial.quiz"
+                 (click)="open(quizBuilder);
+                 selectedModule = module;
+                 submitted = false;
+                 quiz.type = 'tutorial';
+                 quiz.parent = tutorial._id">
+              <svg><use xlink:href="#add-icon"></use></svg>
+              <div class="add-button-text">Add a quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && tutorial.quiz"
+                 (click)="open(quizBuilder);
+                 setQuiz(tutorial.quiz);
+                 isEditing = true;
+                 quiz.type = 'tutorial';
+                 quiz.parent = tutorial._id;
+                 selectedModule = module;">
+              <svg><use xlink:href="#edit-icon"></use></svg>
+              <div class="add-button-text">Edit quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && tutorial.quiz"
+                 (click)="open(deleteQuiz);
+                 selectedItem = tutorial;
+                 quiz = tutorial.quiz;
+                 selectedModule = module;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client')"
+                 (click)="
+                 contentType = 'tutorial';
+                 isEditing = true;
+                 selectedModule = module;
+                 submitted = false;
+                 open(addContent);
+                 editTutorial(tutorial);">
+              <svg><use xlink:href="#edit-icon"></use></svg>
+              <div class="add-button-text">Edit tutorial</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client')"
+                 (click)="open(deleteTutorial);
+                 selectedTutorial = tutorial;
+                 selectedModule = module;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete tutorial</div>
+            </div>
+          </div>
+        </li>
+        <li class="module-content-item d-flex align-items-center justify-content-between"
+            *ngFor="let file of module.files; let j = index">
+          <div class="d-flex align-items-center"
+               (click)="navigateToUrl(file.url);
+                newView(file, module, 'file')">
+            <svg><use xlink:href="#file-icon"></use></svg>
+            {{file.name}}
+          </div>
+          <div class="module-content-options d-flex justify-content-between">
+            <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
+                 *ngIf="file.quiz" routerLink="/dashboard/quizzes/{{file.quiz.slug}}">
+              <svg><use xlink:href="#quizzes-icon"></use></svg>
+              <div class="add-button-text">Take the quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && !file.quiz"
+                 (click)="open(quizBuilder);
+                 selectedModule = module;
+                 submitted = false;
+                 quiz.type = 'file';
+                 quiz.parent = file._id">
+              <svg><use xlink:href="#add-icon"></use></svg>
+              <div class="add-button-text">Add a quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && file.quiz"
+                 (click)="open(quizBuilder);
+                 setQuiz(file.quiz);
+                 isEditing = true;
+                 quiz.type = 'file';
+                 quiz.parent = file._id;
+                 selectedModule = module;">
+              <svg><use xlink:href="#edit-icon"></use></svg>
+              <div class="add-button-text">Edit quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && file.quiz"
+                 (click)="open(deleteQuiz);
+                 selectedModule = module;
+                 quiz = file.quiz;
+                 selectedItem = file;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client')"
+                 (click)="open(deleteFile);
+                 selectedFile = file;
+                 selectedModule = module;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete file</div>
+            </div>
+          </div>
+        </li>
+        <li class="module-content-item d-flex align-items-center justify-content-between"
+            *ngFor="let url of module.urls; let j = index">
+          <div class="d-flex align-items-center"
+               (click)="
+                selectedUrl = url;
+                selectedModule = module;
+                open(urlFrame)">
+            <svg><use xlink:href="#url-icon"></use></svg>
+            {{url.title}}
+          </div>
+          <div class="module-content-options d-flex justify-content-between">
+            <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
+                 *ngIf="url.quiz" routerLink="/dashboard/quizzes/{{url.quiz.slug}}">
+              <svg><use xlink:href="#quizzes-icon"></use></svg>
+              <div class="add-button-text">Take the quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && !url.quiz"
+                 (click)="open(quizBuilder);
+                 selectedModule = module;
+                 submitted = false;
+                 quiz.type = 'url';
+                 quiz.parent = url._id">
+              <svg><use xlink:href="#add-icon"></use></svg>
+              <div class="add-button-text">Add a quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && url.quiz"
+                 (click)="open(quizBuilder);
+                 setQuiz(url.quiz);
+                 isEditing = true;
+                 quiz.type = 'url';
+                 quiz.parent = url._id;
+                 selectedModule = module;">
+              <svg><use xlink:href="#edit-icon"></use></svg>
+              <div class="add-button-text">Edit quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client') && url.quiz"
+                 (click)="open(deleteQuiz);
+                 selectedModule = module;
+                 quiz = url.quiz;
+                 selectedItem = url;">
+              <svg><use xlink:href="#add-icon"></use></svg>
+              <div class="add-button-text">Delete quiz</div>
+            </div>
+            <div class="add-button d-none d-md-flex align-items-center"
+                 *ngIf="(getRole() === 'administrator' || getRole() === 'client')"
+                 (click)="open(deleteUrl);
+                 selectedUrl = url;
+                 selectedModule = module;">
+              <svg><use xlink:href="#delete-icon"></use></svg>
+              <div class="add-button-text">Delete url</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>

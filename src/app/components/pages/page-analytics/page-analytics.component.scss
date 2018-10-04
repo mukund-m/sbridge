@@ -1,0 +1,28 @@
+.bargraph, .linechart {
+ width: 100%;
+  min-height: 400px;
+}
+
+.linechart {
+}
+
+.heatmap {
+  width: 100%;
+  min-height: 400px;
+}
+
+svg {
+  display: inline-block;
+  max-height: 50px;
+}
+
+.filter-client {
+  border:1px solid #B0BEC5;
+  padding: 10px 10px 10px 30px;
+  background-position-y: 10px;
+  margin: 0;
+}
+
+.button {
+  margin-left: 7em;
+}

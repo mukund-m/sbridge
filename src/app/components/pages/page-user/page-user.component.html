@@ -1,0 +1,95 @@
+<div class="page-title d-flex align-items-center justify-content-between text-thin bottom-shadow">
+  User
+</div>
+<div class="page-container">
+  <div class="page-loading-container d-flex align-items-center" *ngIf="loading">
+    <div class="full-width text-center">
+      <div class="spinner">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+      </div>
+      <h3 class="text-thin">{{loadingStatus}}</h3>
+    </div>
+  </div>
+  <div class="page-failure-container" *ngIf="failure">
+    <div class="full-width text-center">
+      <svg><use xlink:href="#failure-icon"></use></svg>
+      <h3>Oops!</h3>
+      <h6>{{resultMessage}}</h6>
+    </div>
+  </div>
+  <div class="container-fluid no-padding" *ngIf="!loading && !failure">
+    <div class="row">
+      <div class="col-12">
+        <div class="dashboard-header-container">
+          <div class="row">
+            <div class="col-12 no-gutters">
+              <div class="profile-info">
+                <div class="row">
+                  <div class="col">
+                    <div class="profile-title full-width">
+                      <div class="profile-name">
+                        {{userService.selectedUser.firstName}} {{userService.selectedUser.lastName}}
+                      </div>
+                      <div class="profile-points">Has earned <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{userService.selectedUser.points}}</span> points</div>
+                      <div class="date-joined">Joined on <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{(userService.selectedUser.creationDate | date: "longDate") || 'No date set'}}</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="dashboard-body">
+          <div class="dashboard-title">Timeline</div>
+          <app-element-timeline [userId]="userService.selectedUser._id"></app-element-timeline>
+        </div>
+        <div class="dashboard-body">
+          <div class="dashboard-title">Users Statistics</div>
+          <div class="dashboard-item-container">
+            <div class="row">
+              <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+                <div class="administrative-tool-container bottom-shadow">
+                  <div class="administrative-tool d-flex align-items-center justify-content-center">
+                    <div class="full-width text-center">
+                      <div class="icon"><svg><use xlink:href="#module-complete-icon"></use></svg></div>
+                      <div class="title">Tutorials Completed</div>
+                      <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{userService.selectedUser.tutorialsAttempted}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+                <div class="administrative-tool-container bottom-shadow">
+                  <div class="administrative-tool d-flex align-items-center justify-content-center">
+                    <div class="full-width text-center">
+                      <div class="icon"><svg><use  xlink:href="#quizzes-icon"></use></svg></div>
+                      <div class="title">Quizzes Completed</div>
+                      <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{userService.selectedUser.quizzesCompleted}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4 col-xl-2">
+                <div class="administrative-tool-container bottom-shadow">
+                  <div class="administrative-tool d-flex align-items-center justify-content-center">
+                    <div class="full-width text-center">
+                      <div class="icon"><svg><use  xlink:href="#video-icon"></use></svg></div>
+                      <div class="title">Videos Watched</div>
+                      <div class="title1" [ngStyle]="{'color': themeService.color?.primaryColor}">{{userService.selectedUser.videosAttempted}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
