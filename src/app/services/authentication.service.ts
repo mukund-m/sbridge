@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { User } from '../models/user';
+import { Client } from '../models/client';
 
 @Injectable()
 export class AuthenticationService {
   isLoggedIn: Boolean = false;
   user: User = new User({});
+  client: Client
 
   constructor() { }
 

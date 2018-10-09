@@ -12,6 +12,7 @@ import { User } from '../models/user';
 import { Client } from '../models/client';
 import { FirebaseUserService } from '../firebase-services/firebase-user.service';
 import { FirebaseClientService } from '../firebase-services/firebase-client.service';
+import { ThemeService } from './theme.service';
 
 @Injectable()
 export class AuthService {
@@ -62,8 +63,11 @@ export class AuthService {
         this.getCurrentUser().subscribe((users: User[]) => {
           this.currentUser = users[0];
           this.authenticationService.user = this.currentUser;
+          
           this.firebaseClientService.getCurrentClient(this.currentUser.client_id).subscribe((client) => {
             this.currentClient = client;
+            this.authenticationService.client = client;
+           // this.themeservice.initialize(client);
           })
         })
       }else {

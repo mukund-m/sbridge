@@ -139,6 +139,27 @@ export class FirebaseUserService {
     return collection.mergeMap(observables => Observable.combineLatest(observables));
     
   }
+
+  public getUsersWithQuiz(): Observable<any[]> {
+    let uid = this.authService.uid;
+    let collection = this.afs.collection(this.basePath)
+    .snapshotChanges().map(changes => {
+      return changes.map( a=> {
+        const data = a.payload.doc.data() as User;
+        data._id = a.payload.doc.id;
+        let clientObservable = this.firebaseClientService.getCurrentClient(data.client_id);
+        let quizObservable = this.getCurrentUserQuizzes(data._id);
+        const combinedData = Observable.combineLatest(clientObservable,quizObservable, (data1, data2) => {
+          return { ...{ client: data1 },...{ quiz: data2 }};
+        });
+         return combinedData.map(subData => Object.assign({}, { ...subData, ...data }));
+       
+      })
+    })
+    return collection.mergeMap(observables => Observable.combineLatest(observables));
+    
+  }
+
   public getCurrentUserQuizzes(userId: string): Observable<any> {
     let uid = this.authService.uid;
     let collection = this.afs.collection(this.basePath+'/'+ userId +'/quizzes').snapshotChanges().map(changes => {

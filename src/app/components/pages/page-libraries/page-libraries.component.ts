@@ -599,6 +599,27 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
                   module.urls = [];
                 }
               }
+              for(let video of module.videos) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
+                }
+              }
+              for(let video of module.urls) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
+                }
+              }
+              for(let video of module.tutorials) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
+                }
+              }
               module.client = client;
               this.modules.push(module);
             }
@@ -610,7 +631,7 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
       this._authenticationService.user.role == 'user') {
         this.firebaseClientService.getCurrentClient(this._authenticationService.user.client_id).subscribe((client)=>{
           this.moduleSubscription = this.firebaseModuleService.getModules(this._authenticationService.user.client_id)
-          .subscribe((modules)=> {
+          .subscribe((modules: any)=> {
             this.modules = [];
             if(modules && modules[0] == undefined) {
               modules = [];
@@ -629,6 +650,27 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
               if(module.urls) {
                 if(module.urls.length>0 && module.urls[0] == undefined) {
                   module.urls = [];
+                }
+              }
+              for(let video of module.videos) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
+                }
+              }
+              for(let video of module.urls) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
+                }
+              }
+              for(let video of module.tutorials) {
+                if(video.quiz && video.quiz.length &&  video.quiz[0]) {
+                  video.quiz = video.quiz[0]
+                } else if(video.quiz && video.quiz.length &&  !video.quiz[0]){
+                  video.quiz = undefined;
                 }
               }
               module.client = client;

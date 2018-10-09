@@ -13,6 +13,7 @@ import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
 import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
 import { FirebaseClientService } from '../../../firebase-services/firebase-client.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-page-analytics',
@@ -158,19 +159,35 @@ export class PageAnalyticsComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.loading = true;
       this.loadingStatus = 'Loading Modules...';
-      this.firebaseModuleService.getAllModules().subscribe((clients) => {
-        this.loading = false;
-        this.clientModules = [];
-        for (const client of clients) {
-          if (client.modules && client.modules[0] == undefined) {
-            client.modules = [];
+      if(this.getRole() == 'administrator' && !this.selectedClient) {
+        this.firebaseModuleService.getAllModules().subscribe((clients) => {
+          this.loading = false;
+          this.clientModules = [];
+          for (const client of clients) {
+            if (client.modules && client.modules[0] == undefined) {
+              client.modules = [];
+            }
+            for (let module of client.modules) {
+              this.clientModules.push(module);
+            }
           }
-          for (let module of client.modules) {
+          resolve(clients);
+        })
+      } else{
+        let client;
+        if(this.getRole() == 'administrator' && this.selectedClient) {
+          client = this.selectedClient;
+        }else if(this.getRole() == 'client') {
+          client = this._authenticationService.client;
+        }
+        this.firebaseModuleService.getModules(client._id).subscribe((modules)=>{
+          for (let module of modules) {
             this.clientModules.push(module);
           }
-        }
-        resolve(clients);
-      })
+          resolve(modules);
+        })
+      }
+      
     });
     // return new Promise((resolve, reject) => {
     //   this.loading = true;
@@ -192,15 +209,34 @@ export class PageAnalyticsComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.loading = true;
       this.loadingStatus = 'Loading Users...';
-      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this._authenticationService.user.client_id;
-      this.firebaseUserService.getUsersForClientWithQuiz(client).subscribe((users) => {
-        this.loading = false;
-        this.users = [];
-        for (const user of users) {
-          this.users.push(user);
-        }
-        resolve(users);
-      })
+      let client;
+      if(this.getRole() === 'administrator' && this.selectedClient) {
+        client = this.selectedClient._id ;
+      } else if(this.getRole() === 'administrator'  && !this.selectedClient) {
+        client = undefined;
+      }else if(this.getRole() === 'client' ) {
+        client = this._authenticationService.client._id;
+      }
+      if(client) {
+        this.firebaseUserService.getUsersForClientWithQuiz(client).subscribe((users) => {
+          this.loading = false;
+          this.users = [];
+          for (const user of users) {
+            this.users.push(user);
+          }
+          resolve(users);
+        })
+      } else {
+        this.firebaseUserService.getUsersWithQuiz().subscribe((users)=>{
+          this.loading = false;
+          this.users = [];
+          for (const user of users) {
+            this.users.push(user);
+          }
+          resolve(users);
+        })
+      }
+      
       // this.userService.getUsersModules(this.usersModulesOffset, this.usersModulesLimit, this.usersModulesSearchParam, client, this.usersModulesFilter)
       //   .subscribe((result: any) => {
       //     this.loading = false;
@@ -230,8 +266,10 @@ export class PageAnalyticsComponent implements OnInit {
         }
         if(totalValidated != 0) {
           module.meanGrade = Math.ceil(totalGrade / totalValidated);
+        } else {
+          module.meanGrade = 0
         }
-        module.meanGrade = 0
+        
       }
       this.loading = false;
        this.buildMeanData();
@@ -316,6 +354,9 @@ export class PageAnalyticsComponent implements OnInit {
     let totalQuizzes = 0;
     let userScore = 0;
     let totalUserQuizzes = 0;
+    if(user.quiz[0] == undefined) {
+      user.quiz = [];
+    }
     if(module.tutorials) {
       if(module.tutorials.length>0 && module.tutorials[0] == undefined) {
         module.tutorials = [];
@@ -336,11 +377,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const video of module.videos) {
       if (video.quiz && video.quiz[0]) {
-        video.quiz = video.quiz[0];
+        let quiz = video.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += video.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (video.quiz && userQuiz.quiz_id && video.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -353,11 +394,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const tutorial of module.tutorials) {
       if (tutorial.quiz && tutorial.quiz[0]) {
-        tutorial.quiz = tutorial.quiz[0];
+        let quiz = tutorial.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += tutorial.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (tutorial.quiz && userQuiz.quiz_id && tutorial.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz&& userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -371,11 +412,11 @@ export class PageAnalyticsComponent implements OnInit {
 
     for (const url of module.urls) {
       if (url.quiz && url.quiz[0]) {
-        url.quiz = url.quiz[0];
+        let quiz = url.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += url.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (url.quiz && userQuiz.quiz_id && url.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -388,11 +429,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const file of module.files) {
       if (file.quiz && file.quiz[0]) {
-        file.quiz = file.quiz[0];
+        let quiz = file.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += file.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (file.quiz && userQuiz.quiz_id && file.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -532,11 +573,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const video of module.videos) {
       if (video.quiz && video.quiz[0]) {
-        video.quiz = video.quiz[0];
+        let quiz = video.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += video.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (video.quiz && userQuiz.quiz_id && video.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -549,11 +590,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const tutorial of module.tutorials) {
       if (tutorial.quiz && tutorial.quiz[0]) {
-        tutorial.quiz = tutorial.quiz[0];
+        let quiz = tutorial.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += tutorial.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (tutorial.quiz && userQuiz.quiz_id && tutorial.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -567,11 +608,11 @@ export class PageAnalyticsComponent implements OnInit {
 
     for (const url of module.urls) {
       if (url.quiz && url.quiz[0]) {
-        url.quiz = url.quiz[0];
+        let quiz = url.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += url.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (url.quiz && userQuiz.quiz_id && url.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
@@ -584,11 +625,11 @@ export class PageAnalyticsComponent implements OnInit {
     }
     for (const file of module.files) {
       if (file.quiz && file.quiz[0]) {
-        file.quiz = file.quiz[0];
+        let quiz = file.quiz[0];
         totalQuizzes++;
-        totalValidationGrade += file.quiz.passPercentage;
+        totalValidationGrade += quiz.passPercentage;
         for (const userQuiz of user.quiz) {
-          if (file.quiz && userQuiz.quiz_id && file.quiz._id == (userQuiz.quiz_id)) {
+          if (quiz && userQuiz.quiz_id && quiz._id == (userQuiz.quiz_id)) {
             isAttempted = true;
             if (userQuiz.validated) {
               totalUserQuizzes++;
