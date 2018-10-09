@@ -11,6 +11,7 @@ import {ThemeService} from "../../../services/theme.service";
 import {QuizService} from "../../../services/quiz.service";
 import {NavigationService} from "../../../services/navigation.service";
 import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
+import { FirebaseQuizService } from '../../../firebase-services/firebase-quiz.service';
 
 @Component({
   selector: 'app-page-quiz',
@@ -44,7 +45,8 @@ export class PageQuizComponent implements OnInit {
     public themeService: ThemeService,
     public sanitizer: DomSanitizer,
     public navigationService: NavigationService,
-    private firebaseModuleService: FirebaseModuleService
+    private firebaseModuleService: FirebaseModuleService,
+    private firebaseQuizService: FirebaseQuizService
   ) {
     navigationService.isDashboard = true;
   }
@@ -61,22 +63,13 @@ export class PageQuizComponent implements OnInit {
           .subscribe((questions) => {
             quiz.questions = questions;
             this.loading = false;
+            quiz._id = this.route;
             this.quiz = quiz;
 
           })
           
         })
       })
-      this._APIService.getQuiz(this.route, this.clientService.client, localStorage.getItem('token')).subscribe((quizResult: ApiResponse) => {
-        this.loading = false;
-        this.quiz = new Quiz(quizResult.data);
-      }, error => {
-        if (error) {
-          this.loading = false;
-          this.failure = true;
-          this.resultMessage = error.error.message;
-        }
-      });
     });
   }
 
@@ -96,15 +89,22 @@ export class PageQuizComponent implements OnInit {
     this.quizFailure = false;
     this.finalized = false;
     this.currentQuestion = 0;
-    this._APIService.getQuiz(this.route, this.clientService.client, localStorage.getItem('token')).subscribe((quizResult: ApiResponse) => {
-      this.loading = false;
-      this.quiz = new Quiz(quizResult.data);
-    }, error => {
-      if (error) {
-        this.loading = false;
-        this.failure = true;
-        this.resultMessage = error.error.message;
-      }
+    this._route.params.subscribe(params => {
+      this.route = params['id'];
+      this._route.queryParams.subscribe((queryParams)=> {
+        this.firebaseModuleService.getQuiz(queryParams.client, queryParams.module, queryParams.type, queryParams.type_id, this.route )
+        .subscribe((quiz) => {
+          this.firebaseModuleService.getQuestions(queryParams.client, queryParams.module, queryParams.type, queryParams.type_id, this.route)
+          .subscribe((questions) => {
+            quiz.questions = questions;
+            this.loading = false;
+            quiz._id = this.route;
+            this.quiz = quiz;
+
+          })
+          
+        })
+      })
     });
   }
 
@@ -115,19 +115,23 @@ export class PageQuizComponent implements OnInit {
     if (this._activatedRoute.queryParams['client']) {
       client = this._activatedRoute.queryParams['client'];
     }
-    this.quizService.submitQuiz(this.quiz, client).subscribe((result: any) => {
-      this.finalized = true;
-      this.totalAnswers = result.data.correctAnswers;
-      this.resultPercentage = result.data.percentageCorrect;
-      this.quiz.loading = false;
-      result.data.validated ? this.quizSuccess = true : this.quizFailure = true;
-      this.resultMessage = result.message;
-      console.log(result);
-    }, error => {
-      this.finalized = true;
-      this.quiz.loading = false;
-      this.resultMessage = error.error.message;
-    });
+    this._route.queryParams.subscribe((queryParams)=> {
+      this.firebaseQuizService.submitQuiz(this.quiz, queryParams.client, queryParams.module,
+        queryParams.type, queryParams.type_id).then((result:any)=>{
+          this.finalized = true;
+          this.totalAnswers = result.correctAnswers;
+          this.resultPercentage = result.percentageCorrect;
+          this.quiz.loading = false;
+          result.validated ? this.quizSuccess = true : this.quizFailure = true;
+          this.resultMessage = 'Quiz submitted successfully!!';
+        }).catch((error)=>{
+          this.finalized = true;
+          this.quiz.loading = false;
+          this.resultMessage = error;
+        })
+    })
+
+    
   }
 
   submitAnswer(answer) {

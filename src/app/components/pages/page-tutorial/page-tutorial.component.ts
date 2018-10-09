@@ -6,6 +6,7 @@ import {Tutorial} from "../../../models/tutorial";
 import {ApiResponse} from "../../../interfaces/api-response";
 import {ThemeService} from "../../../services/theme.service";
 import {NavigationService} from "../../../services/navigation.service";
+import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
 
 @Component({
   selector: 'app-page-tutorial',
@@ -25,26 +26,25 @@ export class PageTutorialComponent implements OnInit {
     private _route: ActivatedRoute,
     public clientService: ClientService,
     public themeService: ThemeService,
+    private firebaseModuleService: FirebaseModuleService,
     navigationService: NavigationService
   ) {
     navigationService.isDashboard = true;
   }
 
-  ngOnInit() {
+  ngOnInit() { 
     this.loading = true;
     this.loadingStatus = 'Loading Tutorial...';
     this._route.params.subscribe(params => {
       this.route = params['id'];
-      this._APIService.getTutorial(this.route, this.clientService.client, localStorage.getItem('token')).subscribe((tutorialsResult: ApiResponse) => {
-        this.loading = false;
-        this.tutorial = new Tutorial(tutorialsResult.data);
-      }, error => {
-        if (error) {
+      this._route.queryParams.subscribe((queryParams)=> {
+        let client_id = queryParams.client;
+        let module_id = queryParams.module;
+        this.firebaseModuleService.getTutorial(client_id,module_id,this.route).subscribe((data)=>{
           this.loading = false;
-          this.failure = true;
-          this.resultMessage = error.error.message;
-        }
-      });
+          this.tutorial = data;
+        })
+      })
     });
   }
 

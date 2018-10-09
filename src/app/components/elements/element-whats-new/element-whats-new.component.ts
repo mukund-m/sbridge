@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import {ClientService} from "../../../services/client.service";
 import {ApiResponse} from "../../../interfaces/api-response";
 import {ThemeService} from "../../../services/theme.service";
+import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
+import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
 
 @Component({
   selector: 'app-element-whats-new',
@@ -17,20 +19,21 @@ export class ElementWhatsNewComponent implements OnInit {
 
   constructor(
     public clientService: ClientService,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private firebaseModuleService: FirebaseModuleService,
+    private firebaseUserService: FirebaseUserService
+
   ) { }
 
   ngOnInit() {
     this.loading = true;
     this.loadingStatus = 'Fetching new items...'
-    this.clientService.getWhatsNew().subscribe((result: ApiResponse) => {
-      this.loading = false;
-      this.whatsNew = result.data.newItems || [];
-    }, error => {
-      this.loading = false;
-      this.failure = true;
-      this.resultmessage = error.error.message;
-    });
+    this.firebaseUserService.getCurrentUser().subscribe((users)=>{
+      this.firebaseModuleService.getModulesAddedToday(users[0].client_id).subscribe((modules)=>{
+          this.whatsNew = modules || []
+          this.loading = false;
+      })
+    })
   }
 
 }

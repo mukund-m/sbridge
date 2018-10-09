@@ -20,6 +20,7 @@ export class Module {
   isValidated: Boolean = false;
   validationGrade: Number = 0;
   meanGrade: Number = 0;
+  createdAt: any;
 
   constructor(module) {
     this.isValidated = module.isValidated;

@@ -30,6 +30,7 @@ import { FirebaseModuleService } from '../../../firebase-services/firebase-modul
 import { FirebaseClientService } from '../../../firebase-services/firebase-client.service';
 import {Subscription} from "rxjs/Subscription";
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-page-libraries',
@@ -54,6 +55,7 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
   contentType = '';
   submitted: Boolean = false;
   clients = [];
+  selectedType: any;
   selectedItem: any;
   selectedModule: Module;
   selectedVideo: Video;
@@ -117,10 +119,11 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
   }
 
   newView(parent, module, type) {
-    this.navigationService.newView(parent, module, type).subscribe((result: ApiResponse) => {
-    }, error => {
-      console.log('Could not log view');
-    });
+    this.firebaseModuleService.addViews(module.client._id, module._id,type,parent._id).then(()=>{
+
+    }).catch(()=>{
+      console.log('Could not log view'); 
+    })
   }
 
   submitQuiz() {
@@ -156,49 +159,16 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
         })
       } else {
         this.loadingStatus = 'Updating quiz...';
-        this.quizService.updateQuiz(this.quiz, this.selectedModule).subscribe((result: ApiResponse) => {
-          this.modalLoading = false;
-          this.modalSuccess = true;
-          this.modalResultMessage = result.message;
-          switch (result.data.type) {
-            case 'video': {
-              for (const video of this.selectedModule.videos) {
-                if (video._id === result.data.parent) {
-                  video.quiz = new Quiz(result.data.quiz);
-                }
-              }
-              break;
-            }
-            case 'url': {
-              for (const url of this.selectedModule.urls) {
-                if (url._id === result.data.parent) {
-                  url.quiz = new Quiz(result.data.quiz);
-                }
-              }
-              break;
-            }
-            case 'file': {
-              for (const file of this.selectedModule.files) {
-                if (file._id === result.data.parent) {
-                  file.quiz = new Quiz(result.data.quiz);
-                }
-              }
-              break;
-            }
-            case 'tutorial': {
-              for (const tutorial of this.selectedModule.tutorials) {
-                if (tutorial._id === result.data.parent) {
-                  tutorial.quiz = new Quiz(result.data.quiz);
-                }
-              }
-              break;
-            }
-          }
-        }, error => {
-          this.modalLoading = false;
-          this.modalFailure = true;
-          this.modalResultMessage = error.error.message;
-        });
+        this.firebaseModuleService.updateQuiz(this.selectedModule.client._id,
+          this.selectedModule._id, this.quiz.type, this.quiz.parent,this.quiz._id, this.quiz).then(()=>{
+            this.modalLoading = false;
+            this.modalSuccess = true;
+            this.modalResultMessage = 'Quiz updated successfully';
+          }).catch((error)=>{
+            this.modalLoading = false;
+            this.modalFailure = true;
+            this.modalResultMessage = error
+          })
       }
     }
   }
@@ -396,22 +366,16 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
       module: this.newContentFormGroup.controls['module'].value,
       client: this.newContentFormGroup.controls['client'].value
     };
-    this.tutorialService.editTutorial(this.newContentFormGroup.controls['_id'].value, body).subscribe((result: ApiResponse) => {
-      this.modalLoading = false;
-      this.modalSuccess = true;
-      const index = this.modules.indexOf(this.selectedModule);
-      for (const tutorial of this.modules[index].tutorials) {
-        if (tutorial._id === this.newContentFormGroup.controls['_id'].value) {
-          tutorial.title = body.title;
-          tutorial.content = body.content;
-        }
-      }
-      this.modalResultMessage = result.message;
-    }, error => {
-      this.modalLoading = false;
-      this.modalFailure = true;
-      this.modalResultMessage = error.error.message;
-    });
+    this.firebaseModuleService.updateTutorial(body.client, body.module,
+      this.newContentFormGroup.controls['_id'].value, body ).then(()=>{
+        this.modalLoading = false;
+        this.modalSuccess = true;
+        this.modalResultMessage = 'Tutorial updated successfully';
+      }).catch((error)=>{
+        this.modalLoading = false;
+        this.modalFailure = true;
+        this.modalResultMessage = error
+      })
   }
 
   submitVideo() {
@@ -554,20 +518,22 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
     
   }
 
-  removeQuiz(parent) {
+  removeQuiz(parent, selectedType) {
     this.modalLoading = true;
     this.loadingStatus = 'Deleting ' + this.quiz.title + '...';
     this.quiz.parent = parent._id;
-    this.quizService.removeQuiz(this.quiz, this.selectedModule.client._id).subscribe((result: ApiResponse) => {
-      this.modalLoading = false;
-      this.modalSuccess = true;
-      this.modalResultMessage = result.message;
-      delete parent.quiz;
-    }, error => {
-      this.modalLoading = false;
-      this.modalFailure = true;
-      this.modalResultMessage = error.error.message;
-    });
+    let selectedObj;
+   
+    this.firebaseModuleService.deleteQuiz(this.selectedModule.client._id, this.selectedModule._id,
+      selectedType, parent._id, this.quiz._id).then(()=>{
+        this.modalLoading = false;
+        this.modalSuccess = true;
+        this.modalResultMessage = 'Quiz Removed Successfully';
+      }).catch((error)=>{
+        this.modalLoading = false;
+        this.modalFailure = true;
+        this.modalResultMessage = error;
+      })
   }
 
   clearModal() {
@@ -609,18 +575,71 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
     return new Promise(resolve => {
       this.loading = true;
       this.loadingStatus = 'Fetching Modules';
-      
-      this.moduleSubscription = this.firebaseModuleService.getAllModules().subscribe((clients)=> {
-        this.modules = [];
-        for(let client of clients) {
-          for (const module of client.modules) {
-            module.client = client;
-            this.modules.push(module);
+      let moduleObservable: Observable<any>;
+      if(this._authenticationService.user.role == 'administrator') {
+        this.moduleSubscription = this.firebaseModuleService.getAllModules().subscribe((clients)=> {
+          this.modules = [];
+          for(let client of clients) {
+            if(client.modules && client.modules[0] == undefined) {
+              client.modules = [];
+            }
+            for (const module of client.modules) {
+              if(module.tutorials) {
+                if(module.tutorials.length>0 && module.tutorials[0] == undefined) {
+                  module.tutorials = [];
+                }
+              }
+              if(module.videos) {
+                if(module.videos.length>0 && module.videos[0] == undefined) {
+                  module.videos = [];
+                }
+              }
+              if(module.urls) {
+                if(module.urls.length>0 && module.urls[0] == undefined) {
+                  module.urls = [];
+                }
+              }
+              module.client = client;
+              this.modules.push(module);
+            }
           }
-        }
-        this.loading = false;
-        resolve();
-      })
+          this.loading = false;
+          resolve();
+        })
+      } else if(this._authenticationService.user.role == 'client' || 
+      this._authenticationService.user.role == 'user') {
+        this.firebaseClientService.getCurrentClient(this._authenticationService.user.client_id).subscribe((client)=>{
+          this.moduleSubscription = this.firebaseModuleService.getModules(this._authenticationService.user.client_id)
+          .subscribe((modules)=> {
+            this.modules = [];
+            if(modules && modules[0] == undefined) {
+              modules = [];
+            }
+            for (const module of modules) {
+              if(module.tutorials) {
+                if(module.tutorials.length>0 && module.tutorials[0] == undefined) {
+                  module.tutorials = [];
+                }
+              }
+              if(module.videos) {
+                if(module.videos.length>0 && module.videos[0] == undefined) {
+                  module.videos = [];
+                }
+              }
+              if(module.urls) {
+                if(module.urls.length>0 && module.urls[0] == undefined) {
+                  module.urls = [];
+                }
+              }
+              module.client = client;
+              this.modules.push(module);
+            }
+            this.loading = false;
+            resolve();
+          });
+        })
+      }
+     
       
     });
   }
@@ -645,6 +664,12 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
     }
     this.router.navigate(['/dashboard/quizzes/'+quizDetails.quiz._id], { queryParams: { client: this.selectedModule.client._id,
     module: this.selectedModule._id, type: type, type_id: quizDetails._id } } )
+  }
+
+  gotoTutorial(tutorial, module) {
+    
+    this.router.navigate(['/dashboard/tutorials/'+tutorial._id], { queryParams: { client: module.client._id,
+    module: module._id} } )
   }
 
   ngOnDestroy() {

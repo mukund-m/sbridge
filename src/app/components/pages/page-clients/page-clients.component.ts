@@ -21,6 +21,7 @@ export class PageClientsComponent extends BasePage implements OnInit {
   limit: any = 12;
   clientSubscription$: Subscription;
   clients: Array<Client> = [];
+  filteredClients: Array<Client> = [];
   fetchingResults: Boolean = false;
   isSearched: Boolean = false;
   isEditting: Boolean = false;
@@ -75,6 +76,7 @@ export class PageClientsComponent extends BasePage implements OnInit {
       for (const client of clients) {
         this.clients.push(new Client(client));
       }
+      this.filteredClients = clients;
     })
   }
 
@@ -175,7 +177,17 @@ export class PageClientsComponent extends BasePage implements OnInit {
   }
 
   updateGetClients(event) {
-    
+    this.fetchingResults = true;
+    if(this.clients) {
+      let totalClients  = this.clients;
+      this.filteredClients = [];
+      for(let client of totalClients) {
+        if(client.name.toLowerCase().indexOf(this.searchParam.toLowerCase()) != -1 ) {
+          this.filteredClients.push(client);
+        }
+      }
+    }
+    this.fetchingResults = false;
   }
 
   open(content) {

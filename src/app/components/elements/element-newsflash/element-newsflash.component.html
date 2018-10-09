@@ -7,7 +7,7 @@
   </div>
   <div class="modal-body">
     <div class="input-container" *ngIf="!modalLoading && !modalSuccess && !modalFailure">
-      <textarea [(ngModel)]="clientService.currentClient.news" placeholder="News message"></textarea>
+      <textarea [(ngModel)]="client_news" placeholder="News message"></textarea>
       <div class="input-icon">
         <svg><use xlink:href="#news-icon"></use></svg>
       </div>
@@ -46,7 +46,7 @@
       <div class="hidden-option" *ngIf="getRole() === 'administrator' || getRole() === 'client'" (click)="open(updateNews)"><svg><use xlink:href="#edit-icon"></use></svg></div>
       <div class="newsflash">
         <h2>Newsflash</h2>
-        <p>{{clientService.currentClient.news || 'Why not try adding some information?'}}</p>
+        <p>{{client_news || 'Why not try adding some information?'}}</p>
       </div>
     </div>
   </div>

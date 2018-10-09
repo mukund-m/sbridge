@@ -10,6 +10,7 @@ import { AuthenticationService } from '../../../services/authentication.service'
 import { User } from '../../../models/user';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
+import { auth } from 'firebase';
 
 @Component({
   selector: 'app-page-signin',
@@ -38,13 +39,18 @@ export class PageSigninComponent extends BasePage implements OnInit {
       email: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required]),
     });
-    if (localStorage.getItem('token')) {
-      this.success = true;
-      this.resultMessage = 'You seem to be logged in already. We\'re redirecting you to your dashboard.';
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 3000);
-    }
+    this.authService.isLoggedIn().then(()=>{
+      if (this.authService.authenticated) {
+        this.success = true;
+        this.resultMessage = 'You seem to be logged in already. We\'re redirecting you to your dashboard.';
+        setTimeout(() => {  
+          window.location.href = '/dashboard';
+        }, 3000);
+      }
+    }).catch(()=>{
+
+    })
+    
   }
 
   submitForm() {
@@ -54,6 +60,7 @@ export class PageSigninComponent extends BasePage implements OnInit {
       this.resultMessage = 'Signin success. Redirecting you to your dashboard.';
       this.routerService.navigate(['/dashboard'])
     }).catch(()=> {
+      this.loading = false;
       this.resultMessage = 'Error while authenticating';
     })
     ;

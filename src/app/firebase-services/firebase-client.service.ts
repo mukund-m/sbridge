@@ -55,4 +55,6 @@ export class FirebaseClientService {
     const document: AngularFirestoreDocument<Client> = this.afs.doc(this.basePath+'/'+fskey);
     return document.delete();
   }
+
+ 
 }

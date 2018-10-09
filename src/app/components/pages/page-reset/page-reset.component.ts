@@ -10,6 +10,7 @@ import { BasePage } from '../../../abstract-classes/base-page';
 import { ApiResponse } from '../../../interfaces/api-response';
 import { ActivatedRoute, Params } from '@angular/router';
 import {NavigationService} from "../../../services/navigation.service";
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-page-reset',
@@ -28,6 +29,7 @@ export class PageResetComponent extends BasePage implements OnInit {
     public clientService: ClientService,
     public navigationService: NavigationService,
     public APIService: ApiService,
+    private authService: AuthService,
     private _activatedRoute: ActivatedRoute
   ) {
     super();
@@ -89,17 +91,15 @@ export class PageResetComponent extends BasePage implements OnInit {
 
   submitForm() {
     this.loading = true;
-    this.APIService.resetInit(this.clientService.client, this.resetInitForm.value).subscribe((resetResult: ApiResponse) => {
+    this.authService.resetPassword(this.resetInitForm.value.email).then(()=>{
       this.loading = false;
       this.success = true;
-      this.resultMessage = resetResult.message;
-    }, signinError => {
-      if (signinError) {
-        this.loading = false;
-        this.failure = true;
-        this.resultMessage = signinError.error.message;
-      }
-    });
+      this.resultMessage = 'We have send you a password reset mail'
+    }).catch((error)=>{
+      this.loading = false;
+      this.failure = true; 
+      this.resultMessage = error;
+    })
   }
 
 }

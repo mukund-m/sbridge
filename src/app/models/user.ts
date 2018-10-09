@@ -16,7 +16,7 @@ export class User {
   quizzesCompleted: Number;
   tutorialsAttempted: Number;
   videosAttempted: Number;
-  creationDate: Date;
+  creationDate: any;
   isActivated:  boolean;
   password: string;
   quizzes: any;

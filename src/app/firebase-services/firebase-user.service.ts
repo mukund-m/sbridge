@@ -7,6 +7,9 @@ import 'rxjs/Rx';
 import { DateService } from './date.service';
 import { FirebaseQuizService } from './firebase-quiz.service';
 import { FirebaseClientService } from './firebase-client.service';
+import { FirebaseModuleService } from './firebase-module.service';
+import { FirebaseCloudFunctionService } from './firebase-cloud-function.service';
+
 
 @Injectable()
 export class FirebaseUserService {
@@ -19,6 +22,8 @@ export class FirebaseUserService {
     private dateService: DateService,
     private quizService: FirebaseQuizService,
     private firebaseClientService: FirebaseClientService,
+    private firebaseModuleservice: FirebaseModuleService,
+    private firebaseCloudServicee: FirebaseCloudFunctionService,
     private authService: AuthService) {
       this.collectionRef = this.afs.collection(this.basePath);
       this.items = this.collectionRef.snapshotChanges().map(changes => {
@@ -32,7 +37,6 @@ export class FirebaseUserService {
 
 
   public getCurrentUser(): Observable<User[]> {
-    console.log('sabd')
     let uid = this.authService.uid;
     let collection = this.afs.collection(this.basePath , ref=> ref.where('uid','==', uid)).snapshotChanges().map(changes => {
       return changes.map( a=> {
@@ -45,9 +49,27 @@ export class FirebaseUserService {
   }
 
   public addUser(user): Promise<any> {
-    user.password = this.randomNumbers(4);
-    user.isActivated = true;
-    return this.collectionRef.add(user);
+    return new Promise((resolve, reject)=>{
+      user.password = this.randomNumbers(6);
+      this.firebaseCloudServicee.createUser(user).then((result: any) => {
+        if(result.user) {
+          user.isActivated = true;
+          user.uid = result.user.uid;
+         this.collectionRef.add(user).then((result)=>{
+          resolve(result);
+          }).catch((error)=>{
+            reject(error);
+          })
+         
+        }else{
+          reject(result.error.message);
+        }
+      })
+    })
+    
+
+
+    
   }
 
   public getUser(user_id: string): Observable<User> {
@@ -68,7 +90,6 @@ export class FirebaseUserService {
   }
 
   public getUsers(): Observable<any[]> {
-    console.log('sabd')
     let uid = this.authService.uid;
     let collection = this.afs.collection(this.basePath ).snapshotChanges().map(changes => {
       return changes.map( a=> {
@@ -83,13 +104,53 @@ export class FirebaseUserService {
     
   }
 
+  public getUsersForClient(client_id): Observable<any[]> {
+    let uid = this.authService.uid;
+    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id) )
+    .snapshotChanges().map(changes => {
+      return changes.map( a=> {
+        const data = a.payload.doc.data() as User;
+        data._id = a.payload.doc.id;
+        let clientObservable = this.firebaseClientService.getCurrentClient(data.client_id);
+        return clientObservable.map(clientData=> Object.assign({}, { ...{client:clientData}, ...data }));
+        
+      })
+    })
+    return collection.mergeMap(observables => Observable.combineLatest(observables));
+    
+  }
+
+  public getUsersForClientWithQuiz(client_id): Observable<any[]> {
+    let uid = this.authService.uid;
+    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id) )
+    .snapshotChanges().map(changes => {
+      return changes.map( a=> {
+        const data = a.payload.doc.data() as User;
+        data._id = a.payload.doc.id;
+        let clientObservable = this.firebaseClientService.getCurrentClient(data.client_id);
+        let quizObservable = this.getCurrentUserQuizzes(data._id);
+        const combinedData = Observable.combineLatest(clientObservable,quizObservable, (data1, data2) => {
+          return { ...{ client: data1 },...{ quiz: data2 }};
+        });
+         return combinedData.map(subData => Object.assign({}, { ...subData, ...data }));
+       
+      })
+    })
+    return collection.mergeMap(observables => Observable.combineLatest(observables));
+    
+  }
   public getCurrentUserQuizzes(userId: string): Observable<any> {
     let uid = this.authService.uid;
     let collection = this.afs.collection(this.basePath+'/'+ userId +'/quizzes').snapshotChanges().map(changes => {
+      if(changes.length == 0) {
+        return Observable.of(undefined);
+      }
       return changes.map( a=> {
         const data: any = a.payload.doc.data();
         data.dateCompleted = this.dateService.transform(data.dateCompleted);
-        let quizDataObservable = this.quizService.getQuiz(data.quiz_id);
+        let quizDataObservable = this.firebaseModuleservice.getQuiz(data.client_id,
+          data.module_id, data.type, data.type_id, data.quiz_id);
+        //let quizDataObservable = this.quizService.getQuiz(data.quiz_id);
         return quizDataObservable.map(quizData=> Object.assign({}, { ...{quiz:quizData}, ...data }));
       })
     })

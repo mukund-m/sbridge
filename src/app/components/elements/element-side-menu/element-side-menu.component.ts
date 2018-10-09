@@ -5,6 +5,7 @@ import {AuthenticationService} from "../../../services/authentication.service";
 
 import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
 import { User } from '../../../models/user';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-element-side-menu',
@@ -20,7 +21,8 @@ export class ElementSideMenuComponent implements OnInit {
     public themeService: ThemeService,
     public clientService: ClientService,
     public authenticationService: AuthenticationService,
-    private firebaserUserServie: FirebaseUserService
+    private firebaserUserServie: FirebaseUserService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -30,9 +32,7 @@ export class ElementSideMenuComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('id');
-    window.location.href = '/signin';
+    this.authService.logOut();
   }
 
 }

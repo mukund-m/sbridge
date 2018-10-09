@@ -14,6 +14,7 @@ import {AuthenticationService} from "../../../services/authentication.service";
 import {NavigationService} from "../../../services/navigation.service";
 import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
 import { FirebaseClientService } from '../../../firebase-services/firebase-client.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-page-users',
@@ -22,10 +23,11 @@ import { FirebaseClientService } from '../../../firebase-services/firebase-clien
 })
 export class PageUsersComponent extends BasePage implements OnInit {
   canLoadMore: Boolean = false;
-  searchParam: String = '';
+  searchParam: string = '';
   page: any = 0;
   limit: any = 12;
   users: Array<User> = [];
+  filteredUsers: Array<User> = [];
   fetchingResults: Boolean = false;
   isSearched: Boolean = false;
   getUsersSubscription: Subscription;
@@ -52,7 +54,8 @@ export class PageUsersComponent extends BasePage implements OnInit {
     public themeService: ThemeService,
     public navigationService: NavigationService,
     private firebaseUserService: FirebaseUserService,
-    private firebaseClientService: FirebaseClientService
+    private firebaseClientService: FirebaseClientService,
+    private authService: AuthService
   ) {
     super();
   }
@@ -71,6 +74,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
         this.loadingStatus = 'Fetching Clients...';
         this.subscription = this.firebaseClientService.getAllClients().subscribe((clients)=> {
           this.loading = false;
+          this.clients = [];
           for (const client of clients) {
             this.clients.push(new Client(client));
           }
@@ -89,10 +93,14 @@ export class PageUsersComponent extends BasePage implements OnInit {
     this.modalResultMessage = 'Creating user...';
     if (this.userForm.valid) {
       this.modalLoading = true;
-      
+      let userData = this.userForm.value;
+      if(this._authenticationService.user.role == 'client') {
+        userData.client_id = this._authenticationService.user.client_id;
+      }
       this.firebaseUserService.addUser(this.userForm.value).then((user)=>{
        
         let data = this.userForm.value;
+        
         data._id = user.id;
         this.firebaseUserService.update(data._id, data).then(()=> {
           this.modalLoading = false;
@@ -157,11 +165,19 @@ export class PageUsersComponent extends BasePage implements OnInit {
     if (/[a-zA-Z0-9-_ \b]/.test(input)) {
       this.isSearched = true;
       this.page = 0;
-      this.users = [];
       this.fetchingResults = true;
-      this.getUsers().then(result => {
-        this.fetchingResults = false;
-      });
+      if(this.users) {
+        let totalUsers  = this.users;
+        this.filteredUsers = [];
+        for(let user of totalUsers) {
+          if(user.firstName.toLowerCase().indexOf(this.searchParam.toLowerCase()) != -1 || 
+          user.lastName.toLowerCase().indexOf(this.searchParam.toLowerCase()) != -1 ) {
+            this.filteredUsers.push(user);
+          }
+        }
+      }
+      this.fetchingResults = false;
+     
     }
   }
 
@@ -176,22 +192,46 @@ export class PageUsersComponent extends BasePage implements OnInit {
   }
 
   getUsers() {
+    this.searchParam = '';
     return new Promise((resolve, reject) => {
       if (this.getUsersSubscription) {
         this.getUsersSubscription.unsubscribe();
       }
       const filterByClient = this.selectedClient ? 'client' : '';
       const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
-      this.getUsersSubscription = this.firebaseUserService.getUsers().subscribe((users)=> {
-        this.users = [];
-        this.loading = false;
-        users.length === this.limit ? this.canLoadMore = true : this.canLoadMore = false;
-          this.page += users.length;
-          for (const user of users) {
-            this.users.push(user);
-          }
-          resolve();
-      })
+      let filter = undefined;
+      if(this.getRole() === 'administrator' && this.selectedClient) {
+        filter = this.selectedClient._id;
+      }
+      if(this.getRole() == 'client') {
+        filter = this._authenticationService.user.client_id;
+      }
+      if(filter) {
+        this.getUsersSubscription = this.firebaseUserService.getUsersForClient(filter).subscribe((users)=> {
+          this.users = [];
+          this.loading = false;
+          users.length === this.limit ? this.canLoadMore = true : this.canLoadMore = false;
+            this.page += users.length;
+            for (const user of users) {
+                this.users.push(user);
+            }
+            this.filteredUsers = this.users;
+            resolve();
+        })
+      }else{
+        this.getUsersSubscription = this.firebaseUserService.getUsers().subscribe((users)=> {
+          this.users = [];
+          this.loading = false;
+          users.length === this.limit ? this.canLoadMore = true : this.canLoadMore = false;
+            this.page += users.length;
+            for (const user of users) {
+                this.users.push(user);
+            }
+            this.filteredUsers = this.users;
+            resolve();
+        })
+      }
+      
     });
     
     

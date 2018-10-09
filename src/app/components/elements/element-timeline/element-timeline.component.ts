@@ -29,11 +29,10 @@ export class ElementTimelineComponent implements OnInit {
   ngOnInit() {
     this.loading = true;
     this.loadingStatus = 'Fetching timeline...';
-    
-    this.firebaseUserService.getCurrentUser().subscribe((users: User[])=> {
-      this.firebaseUserService.getCurrentUserQuizzes(users[0]._id).subscribe((quizzes: any[])=> {
+    if(this.userId) {
+      this.firebaseUserService.getCurrentUserQuizzes(this.userId).subscribe((quizzes: any[])=> {
         this.loading = false;
-        if(quizzes) {
+        if(quizzes && quizzes[0]!= undefined) {
           for (const quiz of quizzes) {
             quiz.type = 'quiz';
             this.items.push(quiz);
@@ -41,7 +40,21 @@ export class ElementTimelineComponent implements OnInit {
           this.items.sort((a, b) => a.dateCompleted > b.dateCompleted ? 0 : 1);
         }
       })
-    })
+    } else{
+      this.firebaseUserService.getCurrentUser().subscribe((users: User[])=> {
+        this.firebaseUserService.getCurrentUserQuizzes(users[0]._id).subscribe((quizzes: any[])=> {
+          this.loading = false;
+          if(quizzes && quizzes[0]!= undefined) {
+            for (const quiz of quizzes) {
+              quiz.type = 'quiz';
+              this.items.push(quiz);
+            }
+            this.items.sort((a, b) => a.dateCompleted > b.dateCompleted ? 0 : 1);
+          }
+        })
+      })
+    }
+    
     
 
     // this.userService.getUserHistory(this.userId).subscribe((result: ApiResponse) => {

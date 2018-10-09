@@ -349,7 +349,7 @@
     <p *ngIf="!modalLoading && !modalFailure && !modalSuccess">Are you sure you want to remove {{quiz?.title}} from the system? This action is irreversible.</p>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-outline-dark" (click)="removeQuiz(selectedItem)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
+    <button type="button" class="btn btn-outline-dark" (click)="removeQuiz(selectedItem, selectedType)" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Yes</button>
     <button type="button" class="btn btn-outline-dark" (click)="c('Close click'); clearModal()" [disabled]="modalLoading">{{modalSuccess ? 'Close' : 'Cancel'}}</button>
   </div>
 </ng-template>
@@ -617,6 +617,7 @@
                  *ngIf="(getRole() === 'administrator' || getRole() === 'client') && video.quiz"
                  (click)="open(deleteQuiz);
                  selectedItem = video;
+                 selectedType = 'videos';
                  quiz = video.quiz;
                  quiz.type = 'video';
                  quiz.parent = video._id;
@@ -638,14 +639,15 @@
         <li class="module-content-item d-flex align-items-center justify-content-between"
             *ngFor="let tutorial of module.tutorials; let j = index">
           <div class="d-flex align-items-center" (click)="
-                newView(tutorial, module, 'tutorial')"
-               routerLink="/dashboard/tutorials/{{tutorial.slug}}">
+                newView(tutorial, module, 'tutorial');
+                gotoTutorial(tutorial, module)">
             <svg><use xlink:href="#tutorials-icon"></use></svg>
             {{tutorial.title}}
           </div>
           <div class="module-content-options d-flex justify-content-between">
             <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
-                 *ngIf="tutorial.quiz" routerLink="/dashboard/quizzes/{{tutorial.quiz.slug}}">
+                 *ngIf="tutorial.quiz"
+                 (click)="gotoQuiz(tutorial, 'tutorial' )">
               <svg><use xlink:href="#quizzes-icon"></use></svg>
               <div class="add-button-text">Take the quiz</div>
             </div>
@@ -674,6 +676,7 @@
                  *ngIf="(getRole() === 'administrator' || getRole() === 'client') && tutorial.quiz"
                  (click)="open(deleteQuiz);
                  selectedItem = tutorial;
+                 selectedType = 'tutorials';
                  quiz = tutorial.quiz;
                  selectedModule = module;">
               <svg><use xlink:href="#delete-icon"></use></svg>
@@ -741,6 +744,7 @@
                  (click)="open(deleteQuiz);
                  selectedModule = module;
                  quiz = file.quiz;
+                 selectedType = 'files';
                  selectedItem = file;">
               <svg><use xlink:href="#delete-icon"></use></svg>
               <div class="add-button-text">Delete quiz</div>
@@ -767,7 +771,7 @@
           </div>
           <div class="module-content-options d-flex justify-content-between">
             <div class="add-button d-flex align-items-center" [ngStyle]="{background: themeService.color?.primaryColor, color: '#fff', fill: '#fff', border: 'none'}"
-                 *ngIf="url.quiz" routerLink="/dashboard/quizzes/{{url.quiz.slug}}">
+                 *ngIf="url.quiz"  (click)="gotoQuiz(url, 'url' )">
               <svg><use xlink:href="#quizzes-icon"></use></svg>
               <div class="add-button-text">Take the quiz</div>
             </div>
@@ -797,6 +801,7 @@
                  (click)="open(deleteQuiz);
                  selectedModule = module;
                  quiz = url.quiz;
+                 selectedType = 'urls';
                  selectedItem = url;">
               <svg><use xlink:href="#add-icon"></use></svg>
               <div class="add-button-text">Delete quiz</div>

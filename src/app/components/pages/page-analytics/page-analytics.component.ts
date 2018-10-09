@@ -9,7 +9,10 @@ import { Module } from "../../../models/module";
 import { User } from "../../../models/user";
 import { ThemeService } from '../../../services/theme.service';
 import { Subscription } from "rxjs/Subscription";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
+import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
+import { FirebaseClientService } from '../../../firebase-services/firebase-client.service';
 
 @Component({
   selector: 'app-page-analytics',
@@ -61,7 +64,7 @@ export class PageAnalyticsComponent implements OnInit {
   yAxisLabelline = 'Percentage Acquired';
 
   colorSchemeline = {
-    domain: ['#4097ec','#9E9E9E']
+    domain: ['#4097ec', '#9E9E9E']
   };
 
   autoScaleline = true;
@@ -82,7 +85,7 @@ export class PageAnalyticsComponent implements OnInit {
   yAxisLabel1 = 'Mean Score';
 
   colorScheme1 = {
-    domain: ['#4097ec','#9E9E9E']
+    domain: ['#4097ec', '#9E9E9E']
   };
 
   heatData: any[] = [];
@@ -109,6 +112,9 @@ export class PageAnalyticsComponent implements OnInit {
     public themeService: ThemeService,
     public userService: UserService,
     public modulesService: ModuleService,
+    private firebaseModuleService: FirebaseModuleService,
+    private firebaseUserService: FirebaseUserService,
+    private firebaseClientService: FirebaseClientService,
     private _authenticationService: AuthenticationService
   ) { }
 
@@ -143,43 +149,69 @@ export class PageAnalyticsComponent implements OnInit {
       }).catch(error => {
         this.failure = true;
         this.resultMessage = error.message;
-    });
+      });
   }
 
   getClientModules() {
     const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
+
     return new Promise((resolve, reject) => {
       this.loading = true;
       this.loadingStatus = 'Loading Modules...';
-      this.modulesService.getClientModules(this.clientModulesOffset, this.clientModulesLimit,  client).subscribe((result: any) => {
+      this.firebaseModuleService.getAllModules().subscribe((clients) => {
         this.loading = false;
         this.clientModules = [];
-        for (const module of result.data) {
-          this.clientModules.push(new Module(module));
+        for (const client of clients) {
+          if (client.modules && client.modules[0] == undefined) {
+            client.modules = [];
+          }
+          for (let module of client.modules) {
+            this.clientModules.push(module);
+          }
         }
-        resolve(result);
-      }, error => {
-        reject(error.error.message);
-      });
+        resolve(clients);
+      })
     });
+    // return new Promise((resolve, reject) => {
+    //   this.loading = true;
+    //   this.loadingStatus = 'Loading Modules...';
+    //   this.modulesService.getClientModules(this.clientModulesOffset, this.clientModulesLimit,  client).subscribe((result: any) => {
+    //     this.loading = false;
+    //     this.clientModules = [];
+    //     for (const module of result.data) {
+    //       this.clientModules.push(new Module(module));
+    //     }
+    //     resolve(result);
+    //   }, error => {
+    //     reject(error.error.message);
+    //   });
+    // });
   }
 
   getUsersModules() {
     return new Promise((resolve, reject) => {
       this.loading = true;
       this.loadingStatus = 'Loading Users...';
-      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
-      this.userService.getUsersModules(this.usersModulesOffset, this.usersModulesLimit, this.usersModulesSearchParam, client, this.usersModulesFilter)
-        .subscribe((result: any) => {
-          this.loading = false;
-          this.users = [];
-          for (const user of result.data) {
-            this.users.push(new User(user));
-          }
-          resolve(result);
-        }, error => {
-          reject(error);
-        });
+      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this._authenticationService.user.client_id;
+      this.firebaseUserService.getUsersForClientWithQuiz(client).subscribe((users) => {
+        this.loading = false;
+        this.users = [];
+        for (const user of users) {
+          this.users.push(user);
+        }
+        resolve(users);
+      })
+      // this.userService.getUsersModules(this.usersModulesOffset, this.usersModulesLimit, this.usersModulesSearchParam, client, this.usersModulesFilter)
+      //   .subscribe((result: any) => {
+      //     this.loading = false;
+      //     this.users = [];
+      //     for (const user of result.data) {
+      //       this.users.push(new User(user));
+      //     }
+      //     resolve(result);
+      //   }, error => {
+      //     reject(error);
+      //   });
     });
   }
 
@@ -187,24 +219,42 @@ export class PageAnalyticsComponent implements OnInit {
     return new Promise((resolve, reject) => {
       this.loading = true;
       this.loadingStatus = 'Loading Statistics...';
-      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
-      this.modulesService.getModulesStatistics(this.modulesStatisticsOffset, this.modulesStatisticsLimit, client)
-        .subscribe((result: any) => {
-          this.loading = false;
-          for (const foundModule of result.data) {
-            for (const module of this.clientModules) {
-              if (foundModule._id === module._id) {
-                module.meanGrade = foundModule.meanGrade;
-              }
-
-            }
+      for(let module of this.clientModules) {
+        let totalValidated = 0;
+        let totalGrade = 0;
+        for(let user of this.users) {
+          if(this.getAverageUserGradeForModule(user, module).isAttempted) {
+            totalValidated  = totalValidated+1;
           }
-          this.buildMeanData();
-          this.buildLineData();
-          resolve(result);
-        }, error => {
-          reject(error.error);
-        });
+          totalGrade = totalGrade + this.getAverageUserGradeForModule(user, module).avg;
+        }
+        if(totalValidated != 0) {
+          module.meanGrade = Math.ceil(totalGrade / totalValidated);
+        }
+        module.meanGrade = 0
+      }
+      this.loading = false;
+       this.buildMeanData();
+           this.buildLineData();
+          resolve();
+      // const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
+      // this.modulesService.getModulesStatistics(this.modulesStatisticsOffset, this.modulesStatisticsLimit, client)
+      //   .subscribe((result: any) => {
+      //     this.loading = false;
+      //     for (const foundModule of result.data) {
+      //       for (const module of this.clientModules) {
+      //         if (foundModule._id === module._id) {
+      //           module.meanGrade = foundModule.meanGrade;
+      //         }
+
+      //       }
+      //     }
+      //     this.buildMeanData();
+      //     this.buildLineData();
+      //     resolve(result);
+      //   }, error => {
+      //     reject(error.error);
+      //   });
     });
   }
 
@@ -224,69 +274,153 @@ export class PageAnalyticsComponent implements OnInit {
         this.getUsersSubscription.unsubscribe();
       }
       const filterByClient = this.selectedClient ? 'client' : '';
-      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this.clientService.client;
-      this.getUsersSubscription = this.userService.getUsers(this.page, this.limit, this.searchParam, client, filterByClient).subscribe( (result: ApiResponse) => {
+      const client = (this.getRole() === 'administrator' && this.selectedClient) ? this.selectedClient._id : this._authenticationService.user.client_id;
+      this.firebaseUserService.getUsersForClientWithQuiz(client).subscribe((users) => {
         this.loading = false;
-        result.data.length === this.limit ? this.canLoadMore = true : this.canLoadMore = false;
-        this.page += result.data.length;
-        for (const user of result.data) {
-          this.users.push(new User(user));
+        this.users = [];
+        for (const user of users) {
+          this.users.push(user);
         }
-        resolve();
-      }, error => {
-        reject(error);
-        this.failure = true;
-        this.loading = false;
-        this.resultMessage = error.error.message;
-      });
+        resolve(users);
+      })
     });
   }
   getClients() {
     if (this._authenticationService.user.role === 'administrator') {
       this.loading = true;
       this.loadingStatus = 'Fetching Clients...';
-      this.clientService.getClients(0, 100, '').subscribe((result: ApiResponse) => {
+      this.firebaseClientService.getAllClients().subscribe((clients) => {
         this.loading = false;
-        if (result.status === 200) {
-          for (const client of result.data) {
-            this.clients.push(new Client(client));
-          }
+
+        for (const client of clients) {
+          this.clients.push(client);
         }
-      }, error => {
-        this.loading = false;
-        this.failure = true;
-        this.resultMessage = error.error.message;
-      });
+
+      })
     } else {
-      this.userForm.patchValue({client: this.clientService.client});
+      this.userForm.patchValue({ client: this.clientService.client });
     }
   }
 
   getUserModuleGrade(module) {
     if (this.selectedUser) {
-      for (const userModule of this.selectedUser.modules) {
-        if (userModule.module._id === module._id) {
-          return userModule.validationGrade;
-        }
-      }
+      return this.getAverageUserGradeForModule(this.selectedUser, module).avg
+      
     }
     return 0;
   }
 
   getUserModuleValidated(user, module) {
-    console.log(module.title, module._id);
-    for (const userModule of user.modules) {
-      console.log(userModule.module._id);
-      if (userModule.module._id === module._id) {
-        console.log('meh');
-        if (userModule.isValidated === true) {
-          return 'Complete Passed';
-        } else if (userModule.isValidated === false) {
-          return 'Complete Failed';
-        }
+    let isAttempted = false;
+    let totalValidationGrade = 0;
+    let totalQuizzes = 0;
+    let userScore = 0;
+    let totalUserQuizzes = 0;
+    if(module.tutorials) {
+      if(module.tutorials.length>0 && module.tutorials[0] == undefined) {
+        module.tutorials = [];
       }
     }
-    return 'Incomplete / Failed';
+    if(module.videos) {
+      if(module.videos.length>0 && module.videos[0] == undefined) {
+        module.videos = [];
+      }
+    }
+    if(module.urls) {
+      if(module.urls.length>0 && module.urls[0] == undefined) {
+        module.urls = [];
+      }
+    }
+    if(!module.files) {
+      module.files = [];
+    }
+    for (const video of module.videos) {
+      if (video.quiz && video.quiz[0]) {
+        video.quiz = video.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += video.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (video.quiz && userQuiz.quiz_id && video.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    for (const tutorial of module.tutorials) {
+      if (tutorial.quiz && tutorial.quiz[0]) {
+        tutorial.quiz = tutorial.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += tutorial.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (tutorial.quiz && userQuiz.quiz_id && tutorial.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+
+    for (const url of module.urls) {
+      if (url.quiz && url.quiz[0]) {
+        url.quiz = url.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += url.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (url.quiz && userQuiz.quiz_id && url.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    for (const file of module.files) {
+      if (file.quiz && file.quiz[0]) {
+        file.quiz = file.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += file.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (file.quiz && userQuiz.quiz_id && file.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    let averageUserGrade = 0;
+    if(totalUserQuizzes != 0) {
+      averageUserGrade  = Math.ceil(userScore / totalUserQuizzes);
+    }
+    const averageValidationGrade = Math.ceil(totalValidationGrade / totalQuizzes);
+    let isValidated = false;
+    if (averageUserGrade >= averageValidationGrade && averageValidationGrade > 0 && totalQuizzes === totalUserQuizzes) {
+      isValidated = true;
+    }
+    if (isValidated) {
+      return 'Complete Passed';
+    }
+    else if (!isValidated && isAttempted) {
+      return 'Complete Failed';
+    } else {
+      return 'Incomplete / Failed';
+    }
+
   }
 
   getUserModuleGrades() {
@@ -316,7 +450,7 @@ export class PageAnalyticsComponent implements OnInit {
   buildLineData() {
     this.lineData = [
       {
-        name: this.selectedUser ? this.selectedUser.firstName + ' ' + this.selectedUser.lastName: 'User',
+        name: this.selectedUser ? this.selectedUser.firstName + ' ' + this.selectedUser.lastName : 'User',
         series: this.getUserModuleGrades()
       },
       {
@@ -370,5 +504,107 @@ export class PageAnalyticsComponent implements OnInit {
       data.push(dataPoint);
     }
     this.heatData = data;
+  }
+
+  getAverageUserGradeForModule(user, module) {
+    let isAttempted = false;
+    let totalValidationGrade = 0;
+    let totalQuizzes = 0;
+    let userScore = 0;
+    let totalUserQuizzes = 0;
+    if(module.tutorials) {
+      if(module.tutorials.length>0 && module.tutorials[0] == undefined) {
+        module.tutorials = [];
+      }
+    }
+    if(module.videos) {
+      if(module.videos.length>0 && module.videos[0] == undefined) {
+        module.videos = [];
+      }
+    }
+    if(module.urls) {
+      if(module.urls.length>0 && module.urls[0] == undefined) {
+        module.urls = [];
+      }
+    }
+    if(!module.files) {
+      module.files = [];
+    }
+    for (const video of module.videos) {
+      if (video.quiz && video.quiz[0]) {
+        video.quiz = video.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += video.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (video.quiz && userQuiz.quiz_id && video.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    for (const tutorial of module.tutorials) {
+      if (tutorial.quiz && tutorial.quiz[0]) {
+        tutorial.quiz = tutorial.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += tutorial.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (tutorial.quiz && userQuiz.quiz_id && tutorial.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+
+    for (const url of module.urls) {
+      if (url.quiz && url.quiz[0]) {
+        url.quiz = url.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += url.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (url.quiz && userQuiz.quiz_id && url.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    for (const file of module.files) {
+      if (file.quiz && file.quiz[0]) {
+        file.quiz = file.quiz[0];
+        totalQuizzes++;
+        totalValidationGrade += file.quiz.passPercentage;
+        for (const userQuiz of user.quiz) {
+          if (file.quiz && userQuiz.quiz_id && file.quiz._id == (userQuiz.quiz_id)) {
+            isAttempted = true;
+            if (userQuiz.validated) {
+              totalUserQuizzes++;
+              userScore += userQuiz.percentageCorrect;
+            }
+          }
+        }
+      }
+      
+    }
+    let averageUserGrade = 0;
+    if(totalUserQuizzes != 0) {
+      averageUserGrade  = Math.ceil(userScore / totalUserQuizzes);
+    }
+     
+    return {avg: averageUserGrade, isAttempted: isAttempted};
+
   }
 }

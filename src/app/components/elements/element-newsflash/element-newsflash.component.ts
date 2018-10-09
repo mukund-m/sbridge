@@ -5,6 +5,9 @@ import { ClientService } from '../../../services/client.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AuthenticationService } from '../../../services/authentication.service';
 import { ApiResponse } from '../../../interfaces/api-response';
+import { FirebaseClientService } from '../../../firebase-services/firebase-client.service';
+import { FirebaseUserService } from '../../../firebase-services/firebase-user.service';
+import { Client } from '../../../models/client';
 
 @Component({
   selector: 'app-element-newsflash',
@@ -21,10 +24,20 @@ export class ElementNewsflashComponent implements OnInit {
     private _authenticationService: AuthenticationService,
     public themeService: ThemeService,
     public modalService: NgbModal,
-    public clientService: ClientService
+    public clientService: ClientService,
+    private firebaseClientService: FirebaseClientService,
+    private firebaseUserService: FirebaseUserService
   ) { }
 
+  client_news: String;
+  client_id: string;
   ngOnInit() {
+    this.firebaseUserService.getCurrentUser().subscribe((users)=>{
+      this.firebaseClientService.getCurrentClient(users[0].client_id).subscribe((client)=>{
+        this.client_news = client.news;
+        this.client_id = client._id;
+      })
+    })
   }
 
   open(content) {
@@ -42,15 +55,20 @@ export class ElementNewsflashComponent implements OnInit {
 
   submitNewsMessage() {
     this.modalLoading = true;
-    this.clientService.newNewsMessage().subscribe((result: ApiResponse) => {
-      this.modalLoading = false;
-      this.modalSuccess = true;
-      this.modalResultMessage = result.message;
-    }, error => {
-      this.modalLoading = false;
-      this.modalFailure = true;
-      this.modalResultMessage = error.error.message;
-    });
+    let subscription = this.firebaseClientService.getCurrentClient(this.client_id).subscribe((data)=>{
+      subscription.unsubscribe();
+      data.news = this.client_news;
+      this.firebaseClientService.updateClient(this.client_id,data).then(()=>{
+        this.modalLoading = false;
+        this.modalSuccess = true;
+        this.modalResultMessage = 'News updated successfully';
+      }).catch((error)=>{
+        this.modalLoading = false;
+        this.modalFailure = true; 
+        this.modalResultMessage = error;
+      })
+    })
+    
   }
 
 }

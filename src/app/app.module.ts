@@ -36,6 +36,7 @@ import { FirebaseClientService } from './firebase-services/firebase-client.servi
 import { DateService } from './firebase-services/date.service';
 import { FirebaseQuizService } from './firebase-services/firebase-quiz.service';
 import { FirebaseModuleService } from './firebase-services/firebase-module.service';
+import { FirebaseCloudFunctionService } from './firebase-services/firebase-cloud-function.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -71,6 +72,7 @@ import { FirebaseModuleService } from './firebase-services/firebase-module.servi
     FirebaseClientService,
     FirebaseQuizService,
     FirebaseModuleService,
+    FirebaseCloudFunctionService,
     DateService
   ],
   bootstrap: [AppComponent]
