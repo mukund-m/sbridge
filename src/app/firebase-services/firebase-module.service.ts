@@ -87,6 +87,25 @@ export class FirebaseModuleService {
     return collectionRef.add(newQuiz);
   }
 
+  public addFeedback(client_id, module_id, type, type_id, feedObj) {
+    let feedback = {
+      user_id: feedObj.user_id,
+      feedback: feedObj.feedback
+    }
+    if (type == 'video') {
+      type = 'videos';
+    }
+    if (type == 'url') {
+      type = 'urls';
+    }
+    if (type == 'tutorial') {
+      type = 'tutorials';
+    }
+    let path = 'clients/' + client_id + '/modules/' + module_id + '/' + type + '/' + type_id + '/feedbacks';
+    let collectionRef = this.afs.collection(path);
+    return collectionRef.add(feedObj);
+  }
+
   public addQuestionToQuiz(client_id, module_id, type, type_id, quiz_id, question) {
     if (type == 'video') {
       type = 'videos';

@@ -67,7 +67,7 @@
              <button (click)="nextQuestion()" [ngStyle]="{'background': themeService.color?.primaryColor}">Next</button>
            </div>
          </div>
-         <div class="quiz-result d-flex align-items-center" *ngIf="quizFailure || quizSuccess">
+         <div class="quiz-result d-flex align-items-center" *ngIf="(quizFailure || quizSuccess) && !feedbackClicked">
            <div class="full-width">
              <div class="result-icon">
                <svg><use xlink:href="#success-icon" *ngIf="quizSuccess"></use><use xlink:href="#failed-icon" *ngIf="quizFailure"></use></svg>
@@ -82,6 +82,8 @@
                  <button routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" (click)="resetQuiz()" *ngIf="quizFailure">Take the Quiz Again</button>
                  <button routerLink="/dashboard/libraries" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" *ngIf="quizFailure">Back to my library</button>
                  <button routerLink="/dashboard" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}">Back to my dashboard</button>
+                 <button  routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" (click)="feedbackClicked = true;" *ngIf="quizSuccess && !feedbackProvided">Provide feedback</button>
+                 
                </div>
              </div>
              <div class="finalized">
@@ -89,6 +91,29 @@
              </div>
            </div>
          </div>
+
+         <div class="quiz-result d-flex align-items-center" *ngIf="quizSuccess && feedbackClicked">
+          <div class="full-width">
+            <div class="result-icon">
+              <svg><use xlink:href="#success-icon" *ngIf="quizSuccess"></use><use xlink:href="#failed-icon" *ngIf="quizFailure"></use></svg>
+            </div>
+            <div class="result-message" *ngIf="!feedbackProvided">
+              <textarea placeholder="enter your feedback here" required  [(ngModel)]="feedback"></textarea>
+              <div class="question-footer text-center">
+                <button [disabled]="feedback == undefined" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" (click)="sendFeedback()" >Submit</button>
+                
+              </div>
+              
+            </div>
+            <div *ngIf="feedbackProvided">
+              <h3 style="text-align:center">Thank you for your feedback</h3>
+            </div>
+            <div class="finalized">
+
+            </div>
+          </div>
+        </div>
+
        </div>
       </div>
     </div>

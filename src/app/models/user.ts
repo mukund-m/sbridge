@@ -20,6 +20,7 @@ export class User {
   isActivated:  boolean;
   password: string;
   quizzes: any;
+  uid: string;
   modules: any[] = [];
 
   constructor(user) {

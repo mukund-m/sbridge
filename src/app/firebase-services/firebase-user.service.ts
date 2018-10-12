@@ -85,13 +85,32 @@ export class FirebaseUserService {
 
 
   public delete(fskey: string): Promise<any> {
-    const document: AngularFirestoreDocument<User> = this.afs.doc(this.basePath+'/'+fskey);
-    return document.delete();
+    return new Promise((resolve, reject)=>{
+      
+      let sub = this.getUser(fskey).subscribe((user)=>{
+        sub.unsubscribe();
+        this.firebaseCloudServicee.disableUser(user.uid).then(()=>{
+          user.isActivated = false;
+          this.update(fskey, user).then(()=>{
+            resolve();
+          }).catch(()=>{
+            reject();
+          })
+        }).catch(()=>{
+          reject();
+        })
+        
+      })
+    })
+    
+    // const document: AngularFirestoreDocument<User> = this.afs.doc(this.basePath+'/'+fskey);
+    // return document.delete();
   }
 
   public getUsers(): Observable<any[]> {
     let uid = this.authService.uid;
-    let collection = this.afs.collection(this.basePath ).snapshotChanges().map(changes => {
+    let collection = this.afs.collection(this.basePath, ref=>ref.where('isActivated', '==', true) )
+    .snapshotChanges().map(changes => {
       return changes.map( a=> {
         const data = a.payload.doc.data() as User;
         data._id = a.payload.doc.id;
@@ -106,7 +125,8 @@ export class FirebaseUserService {
 
   public getUsersForClient(client_id): Observable<any[]> {
     let uid = this.authService.uid;
-    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id) )
+    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id)
+    .where('isActivated', '==', true) )
     .snapshotChanges().map(changes => {
       return changes.map( a=> {
         const data = a.payload.doc.data() as User;
@@ -122,7 +142,8 @@ export class FirebaseUserService {
 
   public getUsersForClientWithQuiz(client_id): Observable<any[]> {
     let uid = this.authService.uid;
-    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id) )
+    let collection = this.afs.collection(this.basePath, ref=>ref.where('client_id', '==', client_id)
+    .where('isActivated', '==', true) )
     .snapshotChanges().map(changes => {
       return changes.map( a=> {
         const data = a.payload.doc.data() as User;
@@ -142,7 +163,7 @@ export class FirebaseUserService {
 
   public getUsersWithQuiz(): Observable<any[]> {
     let uid = this.authService.uid;
-    let collection = this.afs.collection(this.basePath)
+    let collection = this.afs.collection(this.basePath, ref=> ref.where('isActivated', '==', true))
     .snapshotChanges().map(changes => {
       return changes.map( a=> {
         const data = a.payload.doc.data() as User;

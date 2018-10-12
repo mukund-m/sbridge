@@ -12,6 +12,7 @@ import {QuizService} from "../../../services/quiz.service";
 import {NavigationService} from "../../../services/navigation.service";
 import { FirebaseModuleService } from '../../../firebase-services/firebase-module.service';
 import { FirebaseQuizService } from '../../../firebase-services/firebase-quiz.service';
+import { AuthenticationService } from '../../../services/authentication.service';
 
 @Component({
   selector: 'app-page-quiz',
@@ -35,6 +36,9 @@ export class PageQuizComponent implements OnInit {
   $currentQuestion: BehaviorSubject<Question> = new BehaviorSubject(new Question({}));
   quizSuccess: Boolean = false;
   quizFailure: Boolean = false;
+  feedback: string = undefined;
+  feedbackClicked: boolean = false;
+  feedbackProvided: boolean = false;
 
   constructor(
     private _APIService: ApiService,
@@ -46,7 +50,8 @@ export class PageQuizComponent implements OnInit {
     public sanitizer: DomSanitizer,
     public navigationService: NavigationService,
     private firebaseModuleService: FirebaseModuleService,
-    private firebaseQuizService: FirebaseQuizService
+    private firebaseQuizService: FirebaseQuizService,
+    private authenticationService: AuthenticationService
   ) {
     navigationService.isDashboard = true;
   }
@@ -136,5 +141,18 @@ export class PageQuizComponent implements OnInit {
 
   submitAnswer(answer) {
 
+  }
+
+  sendFeedback() {
+    this._route.queryParams.subscribe((queryParams)=> {
+      this.firebaseModuleService.addFeedback(queryParams.client, queryParams.module,
+        queryParams.type, queryParams.type_id, {
+          feedback: this.feedback,
+          user_id: this.authenticationService.user._id
+        }).then(()=>{
+          this.feedbackProvided = true;
+        })  
+    });
+    
   }
 }

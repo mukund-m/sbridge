@@ -20,27 +20,20 @@ export class AuthenticationGuard implements CanActivate {
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-      
-    // this.navigationService.appLoading = true;
-    // this.navigationService.appLoadingMessage = 'Checking your credentials...';
-    // if (!localStorage.getItem('id') || !localStorage.getItem('token')) {
-    //   this.navigationService.appLoading = false;
-    //   localStorage.removeItem('id');
-    //   localStorage.removeItem('token');
-    //   window.location.href = '/signin?invalid=1';
-    //   return false;
-    // }
-    // this._apiService.verifyToken(localStorage.getItem('id'), localStorage.token, 'signin').subscribe((signinResult: any) => {
-    //   this.authenticationService.user.role = signinResult.data.token.data.data.role;
-    //   this.navigationService.appLoading = false;
-    //   this.authenticationService.isLoggedIn = true;
-    // }, signinError => {
-    //   this.navigationService.appLoading = false;
-    //   localStorage.removeItem('id');
-    //   localStorage.removeItem('token');
-    //   window.location.href = '/signin?invalid=1';
-    //   return false;
-    // });
-    return true;
+      this.navigationService.appLoading = true;
+      this.navigationService.appLoadingMessage = 'Checking your credentials...';
+      return new Promise((resolve, reject)=>{
+        this.authService.isLoggedIn().then((user)=>{
+          if(user) {
+            this.navigationService.appLoading = false;
+            resolve(true);
+          } else {
+            this.navigationService.appLoading = false;
+            window.location.href = '/signin?invalid=1';
+            reject();
+          }
+        })
+      })
+     
   }
 }

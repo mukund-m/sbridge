@@ -44,6 +44,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
   selectedClient: Client;
   private subscription: Subscription;
   private sub2: Subscription;
+  private uploadedFile: File;
 
 
   constructor(
@@ -231,10 +232,57 @@ export class PageUsersComponent extends BasePage implements OnInit {
             resolve();
         })
       }
-      
     });
-    
-    
+  }
+
+  onFileChange(event) {
+    if(event.target.files && event.target.files.length) {
+      this.uploadedFile = event.target.files[0]
+    } 
+  }
+
+  uploadFile() {
+    this.modalLoading = true;
+    if(!this.uploadedFile) {
+      this.modalFailure = true;
+      this.modalResultMessage = 'Please choose a file';
+      this.modalLoading = false;
+    } else{
+      const fileReader = new FileReader();
+          fileReader.onload = (fileLoadedEvent: any) =>{
+              const textFromFileLoaded = fileLoadedEvent.target.result;
+              let inputObj = this.validateFileInput(textFromFileLoaded);
+              if(inputObj.status) {
+                let rows = inputObj.result;
+              }else{
+                this.modalFailure = true;
+                this.modalResultMessage = 'Invalid input';
+                this.modalLoading = false;
+              }
+              console.log(textFromFileLoaded)
+          };
+
+          fileReader.readAsText(this.uploadedFile, "UTF-8");
+    }
+  }
+
+  validateFileInput(input: string) {
+    var lines = input.split("\n");
+    var result = [];
+    for (var i = 1; i < lines.length; i++) {
+        var obj: any = {};
+        var currentline = lines[i].split(",");
+        if(currentline.length != 3) {
+          return {status: false, result: undefined}
+        }else{
+          obj.firstName = currentline[0];
+          obj.lastName = currentline[1];
+          obj.email = currentline[2];
+          result.push(obj);
+        }
+    }
+    return {status: true, result: result}
+
   }
 
   ngOnDestroy() {

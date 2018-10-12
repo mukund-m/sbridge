@@ -52,7 +52,7 @@ export class FirebaseQuizService {
             userQuizResult.validated = validated;
             userQuizResult.pointScore = pointScore;
             userQuizResult.dateCompleted = Date.now();
-            if(users[0].role != 'administrator') {
+            if(users[0].role != 'administrator' && users[0].role != 'client') {
               this.updateUserQuiz(userQuizResult, users[0]._id, userQuizResult._id).then(()=>{
                 let user = users[0];
                 if(!user.points) {
@@ -87,7 +87,7 @@ export class FirebaseQuizService {
               type: type,
               type_id: type_id
           };
-          if(users[0].role != 'administrator') {
+          if(users[0].role != 'administrator' && users[0].role != 'client') {
             this.addToUserQuiz(userQuizObject, users[0]._id).then(()=>{
               let user = users[0];
               if(!user.points) {

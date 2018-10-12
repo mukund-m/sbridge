@@ -20,7 +20,17 @@ export class FirebaseCloudFunctionService {
         })
       })
     })
-    
+  }
+    public disableUser(uid) {
+      return new Promise((resolve, reject)=>{
+        
+        this.afAuth.idToken.subscribe((idToken)=>{ 
+          const headers = new HttpHeaders({'Authorization':'Bearer ' + idToken});
+          return this.http.post(this.baseUrl + '/deActivate',{uid: uid}, {headers}).subscribe((result)=>{
+            resolve(result);
+          })
+        })
+      })
     
   }
 }

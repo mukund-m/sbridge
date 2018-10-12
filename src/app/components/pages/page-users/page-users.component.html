@@ -1,6 +1,7 @@
 <div class="page-title d-flex align-items-center justify-content-between text-thin">
   Users
   <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearUserForm(); open(addUser)"><svg><use xlink:href="#add-icon"></use></svg>Add User</div>
+  <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearUserForm(); open(uploadUsers)"><svg><use xlink:href="#add-icon"></use></svg>Upload Users</div>
 </div>
 <ng-template #addUser let-c="close" let-d="dismiss">
   <div class="modal-header">
@@ -93,6 +94,80 @@
     <button type="button" class="btn btn-outline-dark" (click)="clearUserForm()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
   </div>
 </ng-template>
+
+<ng-template #uploadUsers let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h4 class="modal-title">Upload Users</h4>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click'); clearUserForm()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="modal-result" *ngIf="modalSuccess || modalFailure">
+      <div class="modal-result-icon">
+        <svg *ngIf="modalSuccess"><use xlink:href="#success-icon"></use></svg>
+        <svg *ngIf="modalFailure"><use xlink:href="#failure-icon"></use></svg>
+      </div>
+      <h6 *ngIf="modalFailure">Oops!</h6>
+      <h6 *ngIf="modalSuccess">Yay!</h6>
+      <p>{{modalResultMessage}}</p>
+    </div>
+    <div class="loading-container d-flex align-items-center" *ngIf="modalLoading">
+      <div class="full-width text-center">
+        <div class="spinner">
+          <div class="rect1"></div>
+          <div class="rect2"></div>
+          <div class="rect3"></div>
+          <div class="rect4"></div>
+          <div class="rect5"></div>
+        </div>
+        <h3 class="text-thin">{{loadingStatus}}</h3>
+      </div>
+    </div>
+    <form  [formGroup]="userForm"  *ngIf="!modalLoading && !modalFailure && !modalSuccess">
+      <div class="input-container">
+       
+          <div class="custom-file">
+            <input (change)="onFileChange($event)" type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
+            <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+          </div>
+        
+      </div>
+      <div class="input-container" *ngIf="_authenticationService.user.role === 'administrator'">
+       <select formControlName="client_id">
+         <option value="" *ngIf="!fetchingClients" selected disabled>Client</option>
+         <option *ngFor="let client of clients" [ngValue]="client._id">{{client.name}}</option>
+       </select>
+        <div *ngIf="submitted && !userForm.controls['client_id'].valid" class="input-error">
+          A client is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#client-icon"></use></svg>
+        </div>
+      </div>
+      <div class="input-container">
+        <select [formControl]="userForm.controls.role">
+          <option value="" disabled selected>Role</option>
+          <option value="user">User</option>
+          <option value="client" *ngIf="_authenticationService.user.role === 'administrator'">Client</option>
+          <option value="administrator" *ngIf="_authenticationService.user.role === 'administrator'">Administrator</option>
+        </select>
+        <div *ngIf="submitted && !userForm.controls['role'].valid" class="input-error">
+          A user role is required.
+        </div>
+        <div class="input-icon">
+          <svg><use xlink:href="#role-icon"></use></svg>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="clearUserForm(); c('Close click')" [disabled]="modalLoading">Close</button>
+    <button type="button" class="btn btn-outline-dark" (click)="uploadFile()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Upload</button>
+    <button type="button" class="btn btn-outline-dark" (click)="clearUserForm()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+  </div>
+</ng-template>
+
 <ng-template #confirmDelete let-c="close" let-d="dismiss">
   <div class="modal-header">
     <h4 class="modal-title">Confirm User Deletion</h4>
