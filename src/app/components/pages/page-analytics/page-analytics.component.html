@@ -65,7 +65,7 @@
             [xAxisLabel]="xAxisLabelline"
             [yAxisLabel]="yAxisLabelline"
             [autoScale]="autoScaleline"
-            (select)="onSelect($event)">
+            (select)="onSelect($event, bottomRow)">
           </ngx-charts-line-chart>
         </div>
       </div>
@@ -84,7 +84,7 @@
             [showYAxisLabel]="showYAxisLabel1"
             [xAxisLabel]="xAxisLabel1"
             [yAxisLabel]="yAxisLabel1"
-            (select)="onSelect($event)">
+            (select)="onSelect($event, bottomRow)">
           </ngx-charts-bar-vertical-2d>
         </div>
       </div>

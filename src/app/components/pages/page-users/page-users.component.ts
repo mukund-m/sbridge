@@ -47,7 +47,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
   private uploadedFile: File;
   private uploadSuccess: boolean;
   private uploadResult;
-  private viewResults: boolean = false;
+  viewResults: boolean = false;
   private modalRef;
 
 
