@@ -1,7 +1,48 @@
+<div *ngIf="viewResults">
+  <div class="page-title d-flex align-items-center justify-content-between text-thin">
+    Upload Results
+  </div>
+  <div class="page-content-container">
+      <div class="container-fluid">
+          <div *ngIf="uploadResult.successList.length > 0">
+            <h4>{{uploadResult.successList.length}} Users are created successfully</h4>
+          </div>
+          <div *ngIf="uploadResult.failedList.length > 0">
+            <h5>Failed to create following users</h5>
+            <ul class="modules bottom-shadow">
+                <li class="module" *ngFor="let failure of uploadResult.failedList">
+                    <div class="module-title  align-items-center justify-content-between">
+                        <div class=" align-items-center justify-content-md-start">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                  {{failure.user.email }}
+                                </div>
+                                <div class="col-sm-8">
+                                    {{failure.reason.message}}
+                                </div>
+                              </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+         
+          </div>
+
+
+        </div>
+        </div>
+</div>
+<div *ngIf="!viewResults">
 <div class="page-title d-flex align-items-center justify-content-between text-thin">
   Users
-  <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearUserForm(); open(addUser)"><svg><use xlink:href="#add-icon"></use></svg>Add User</div>
-  <div class="add-button d-flex align-items-center" (click)="isEditing = false; clearUserForm(); open(uploadUsers)"><svg><use xlink:href="#add-icon"></use></svg>Upload Users</div>
+  <div>
+      <ng-template #singleTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>Create single user</ng-template>
+      <ng-template #bulkTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>Upload a CSV file for bulk user creation</ng-template>
+  <div [ngbPopover]="singleTooltip" placement="bottom" triggers="mouseenter:mouseleave"
+   class="add-button  align-items-center" (click)="isEditing = false; clearUserForm(); open(addUser)"><svg><use xlink:href="#add-icon"></use></svg>Add User</div>
+  <div [ngbPopover]="bulkTooltip" placement="bottom"  triggers="mouseenter:mouseleave"
+  class="add-button  align-items-center" (click)="isEditing = false; clearUserForm(); open(uploadUsers)"><svg><use xlink:href="#add-icon"></use></svg>Upload Users</div>
+</div>
 </div>
 <ng-template #addUser let-c="close" let-d="dismiss">
   <div class="modal-header">
@@ -128,8 +169,8 @@
       <div class="input-container">
        
           <div class="custom-file">
-            <input (change)="onFileChange($event)" type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01">
-            <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+            <input (change)="onFileChange($event)" type="file" class="custom-file-input" id="inputGroupFile01" >
+            <label class="custom-file-label" >Choose file</label>
           </div>
         
       </div>
@@ -145,26 +186,13 @@
           <svg><use xlink:href="#client-icon"></use></svg>
         </div>
       </div>
-      <div class="input-container">
-        <select [formControl]="userForm.controls.role">
-          <option value="" disabled selected>Role</option>
-          <option value="user">User</option>
-          <option value="client" *ngIf="_authenticationService.user.role === 'administrator'">Client</option>
-          <option value="administrator" *ngIf="_authenticationService.user.role === 'administrator'">Administrator</option>
-        </select>
-        <div *ngIf="submitted && !userForm.controls['role'].valid" class="input-error">
-          A user role is required.
-        </div>
-        <div class="input-icon">
-          <svg><use xlink:href="#role-icon"></use></svg>
-        </div>
-      </div>
     </form>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-outline-dark" (click)="clearUserForm(); c('Close click')" [disabled]="modalLoading">Close</button>
     <button type="button" class="btn btn-outline-dark" (click)="uploadFile()" [disabled]="modalLoading" *ngIf="!modalSuccess && !modalFailure">Upload</button>
     <button type="button" class="btn btn-outline-dark" (click)="clearUserForm()" [disabled]="modalLoading" *ngIf="modalFailure">Retry</button>
+    <button type="button" class="btn btn-outline-dark" (click)="viewUploadResults()" [disabled]="modalLoading" *ngIf="uploadSuccess">View Results</button>
   </div>
 </ng-template>
 
@@ -284,4 +312,5 @@
       </div>
     </div>
   </div>
+</div>
 </div>

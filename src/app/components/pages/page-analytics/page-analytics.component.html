@@ -39,7 +39,7 @@
             [showYAxisLabel]="showYAxisLabelheat"
             [xAxisLabel]="xAxisLabelheat"
             [yAxisLabel]="yAxisLabelheat"
-            (select)="onSelect($event)">
+            (select)="onSelect($event, bottomRow)">
           </ngx-charts-heat-map>
         </div>
       </div>
@@ -48,7 +48,7 @@
     <!--<button class="button" [ngStyle]="{'background': themeService.color?.primaryColor}">Load More</button>-->
     <!--</div>-->
     <hr>
-    <div class="row">
+    <div #bottomRow class="row">
       <div class="col-12 col-md-6">
         <div class="linechart">
           <ngx-charts-line-chart

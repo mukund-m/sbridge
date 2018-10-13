@@ -89,15 +89,14 @@ export class FirebaseUserService {
       
       let sub = this.getUser(fskey).subscribe((user)=>{
         sub.unsubscribe();
-        this.firebaseCloudServicee.disableUser(user.uid).then(()=>{
-          user.isActivated = false;
-          this.update(fskey, user).then(()=>{
+        this.firebaseCloudServicee.deleteUser(user._id).then((result: any)=>{
+          if(result.status == 'success') {
             resolve();
-          }).catch(()=>{
-            reject();
-          })
-        }).catch(()=>{
-          reject();
+          }else{
+            reject(result.error);
+          }
+        }).catch((error)=>{
+          reject(error);
         })
         
       })
@@ -111,6 +110,9 @@ export class FirebaseUserService {
     let uid = this.authService.uid;
     let collection = this.afs.collection(this.basePath, ref=>ref.where('isActivated', '==', true) )
     .snapshotChanges().map(changes => {
+      if(changes.length == 0) {
+        return Observable.of(undefined);
+      }
       return changes.map( a=> {
         const data = a.payload.doc.data() as User;
         data._id = a.payload.doc.id;
@@ -197,6 +199,13 @@ export class FirebaseUserService {
       })
     })
     return collection.mergeMap(observables => Observable.combineLatest(observables));
+  }
+
+  uploadUsers(client_id, users) {
+    return this.firebaseCloudServicee.uploadUsers({
+      clientId: client_id,
+      users: users
+    })
   }
 
   private randomNumbers = (length) => {

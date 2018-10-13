@@ -31,6 +31,30 @@ export class FirebaseCloudFunctionService {
           })
         })
       })
-    
   }
+
+  public deleteUser(id) {
+    return new Promise((resolve, reject)=>{
+      
+      this.afAuth.idToken.subscribe((idToken)=>{ 
+        const headers = new HttpHeaders({'Authorization':'Bearer ' + idToken});
+        return this.http.post(this.baseUrl + '/deleteUser',{id: id}, {headers}).subscribe((result)=>{
+          resolve(result);
+        })
+      })
+    })
+}
+
+  public uploadUsers(uploadObj) {
+    return new Promise((resolve, reject)=>{
+      
+      this.afAuth.idToken.subscribe((idToken)=>{ 
+        const headers = new HttpHeaders({'Authorization':'Bearer ' + idToken});
+        return this.http.post(this.baseUrl + '/createUsers',uploadObj, {headers}).subscribe((result)=>{
+          resolve(result);
+        })
+      })
+    })
+  
+}
 }

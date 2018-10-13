@@ -98,7 +98,7 @@
               <svg><use xlink:href="#success-icon" *ngIf="quizSuccess"></use><use xlink:href="#failed-icon" *ngIf="quizFailure"></use></svg>
             </div>
             <div class="result-message" *ngIf="!feedbackProvided">
-              <textarea placeholder="enter your feedback here" required  [(ngModel)]="feedback"></textarea>
+              <textarea style="border: solid" placeholder="enter your feedback here" required  [(ngModel)]="feedback"></textarea>
               <div class="question-footer text-center">
                 <button [disabled]="feedback == undefined" routerLinkActive="active" [ngStyle]="{'background': themeService.color?.primaryColor}" (click)="sendFeedback()" >Submit</button>
                 

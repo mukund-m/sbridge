@@ -45,6 +45,10 @@ export class PageUsersComponent extends BasePage implements OnInit {
   private subscription: Subscription;
   private sub2: Subscription;
   private uploadedFile: File;
+  private uploadSuccess: boolean;
+  private uploadResult;
+  private viewResults: boolean = false;
+  private modalRef;
 
 
   constructor(
@@ -135,7 +139,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
   }
 
   open(content) {
-    this.modalService.open(content);
+    this.modalRef = this.modalService.open(content);
   }
 
   getRole() {
@@ -254,9 +258,34 @@ export class PageUsersComponent extends BasePage implements OnInit {
               let inputObj = this.validateFileInput(textFromFileLoaded);
               if(inputObj.status) {
                 let rows = inputObj.result;
+                let client_id;
+                if(this.getRole() == 'administrator') {
+                   client_id= this.userForm.value.client_id
+                } else{
+                  client_id = this._authenticationService.user.client_id
+                }
+                this.firebaseUserService.uploadUsers(client_id, rows).then((result: any)=>{
+                  this.uploadSuccess = true;
+                  this.uploadResult = result;
+                  this.modalFailure = false;
+                  this.modalSuccess = true;
+                  let message = '';
+                  if(result.successList.length > 0) {
+                    result.successList.length + ' Users Created Successfully '
+                  }
+                  if(result.failedList.length > 0) {
+                    message = message + ' Failed to create '+ result.failedList.length  + ' users \n';
+                  }
+                  this.modalResultMessage = message;
+                  this.modalLoading = false;
+                }).catch((error)=>{
+                  this.modalFailure = true;
+                  this.modalResultMessage = error;
+                  this.modalLoading = false;
+                })
               }else{
                 this.modalFailure = true;
-                this.modalResultMessage = 'Invalid input';
+                this.modalResultMessage = 'Some rows are not according to the format, please check';
                 this.modalLoading = false;
               }
               console.log(textFromFileLoaded)
@@ -269,20 +298,28 @@ export class PageUsersComponent extends BasePage implements OnInit {
   validateFileInput(input: string) {
     var lines = input.split("\n");
     var result = [];
-    for (var i = 1; i < lines.length; i++) {
-        var obj: any = {};
-        var currentline = lines[i].split(",");
+    for (var i = 0; i < lines.length; i++) {
+      var obj: any = {};
+      var currentline = lines[i].split(",");
+      if(lines[i].length>0){
         if(currentline.length != 3) {
           return {status: false, result: undefined}
         }else{
-          obj.firstName = currentline[0];
-          obj.lastName = currentline[1];
-          obj.email = currentline[2];
+          obj.firstName = currentline[0].replace(/[\n\r]+/g, '').trim();
+          obj.lastName = currentline[1].replace(/[\n\r]+/g, '').trim();
+          obj.email = currentline[2].replace(/[\n\r]+/g, '').trim();
           result.push(obj);
         }
+      }
+       
     }
     return {status: true, result: result}
 
+  }
+
+  viewUploadResults() {
+    this.modalRef.close();
+    this.viewResults = true;
   }
 
   ngOnDestroy() {

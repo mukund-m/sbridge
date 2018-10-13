@@ -12,10 +12,10 @@ import {NavigationService} from "../../../services/navigation.service";
 export class PageAdministrationComponent extends BasePage implements OnInit {
   isComingSoon: Boolean = false;
   administrativeItems = [
-    { title: 'Manage users', icon: 'user-icon', URI: '/dashboard/users', isActive: true, levelRequired: 'client' },
-    { title: 'Manage clients', icon: 'client-icon', URI: '/dashboard/clients', isActive: true, levelRequired: 'administrator' },
-    { title: 'Manage libraries', icon: 'library-icon', URI: '/dashboard/libraries', isActive: true, levelRequired: 'client' },
-    { title: 'Analytics', icon: 'analytics-icon', URI: '/dashboard/analytics', isActive: true, levelRequired: 'client' },
+    {  title: 'Manage users', icon: 'user-icon', URI: '/dashboard/users', isActive: true, levelRequired: 'client' , tooltip:'Add, Delete, View users'},
+    { title: 'Manage clients', icon: 'client-icon', URI: '/dashboard/clients', isActive: true, levelRequired: 'administrator' , tooltip:'Add, Delete Clients'},
+    { title: 'Manage libraries', icon: 'library-icon', URI: '/dashboard/libraries', isActive: true, levelRequired: 'client', tooltip:'Add, Delete, View Modules, Content Items, Quiz etc.' },
+    { title: 'Analytics', icon: 'analytics-icon', URI: '/dashboard/analytics', isActive: true, levelRequired: 'client', tooltip:'View graphs describing user performance against each modules' },
     ];
 
   constructor(

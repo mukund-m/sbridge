@@ -1,10 +1,16 @@
 <ul class="side-menu-items">
-  <li data-toggle="tooltip" data-placement="right" title="My Dashboard" class="skillbridge-icon" routerLink="/dashboard" routerLinkActive="active" [ngStyle]="{background: themeService.color.primaryColor}">
+  <li [ngbPopover]="dashTooltip" placement="right" triggers="mouseenter:mouseleave" class="skillbridge-icon" routerLink="/dashboard" routerLinkActive="active" [ngStyle]="{background: themeService.color.primaryColor}">
     <svg *ngIf="!themeService.navigation.squareLogo"><use xlink:href="#skillbridge-icon"></use></svg>
     <img *ngIf="themeService.navigation.squareLogo" [src]="themeService.navigation.squareLogo">
   </li>
-  <li data-toggle="tooltip" data-placement="right" title="My Library" class="side-menu-item" routerLink="/dashboard/libraries" routerLinkActive="active"> <svg><use xlink:href="#library-icon"></use></svg></li>
-  <li data-toggle="tooltip" data-placement="right" title="Analytics" class="side-menu-item" routerLink="/dashboard/analytics" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#analytics-icon"></use></svg></li>
-  <li data-toggle="tooltip" data-placement="right" title="Administration" class="side-menu-item" routerLink="/dashboard/administration" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#administrator-icon"></use></svg></li>
-  <li data-toggle="tooltip" data-placement="right" title="Logout" class="side-menu-item-logout" (click)="logout()"> <svg><use xlink:href="#logout-icon"></use></svg></li>
+  <li [ngbPopover]="libTooltip" placement="right" triggers="mouseenter:mouseleave" class="side-menu-item" routerLink="/dashboard/libraries" routerLinkActive="active"> <svg><use xlink:href="#library-icon"></use></svg></li>
+  <li [ngbPopover]="analyticsTooltip" placement="right" triggers="mouseenter:mouseleave" class="side-menu-item" routerLink="/dashboard/analytics" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#analytics-icon"></use></svg></li>
+  <li [ngbPopover]="adminTooltip" placement="right" triggers="mouseenter:mouseleave"  class="side-menu-item" routerLink="/dashboard/administration" routerLinkActive="active" *ngIf="user?.role=== 'administrator' || user?.role=== 'client'"> <svg><use xlink:href="#administrator-icon"></use></svg></li>
+  <li  [ngbPopover]="logoutTooltip" placement="right" triggers="mouseenter:mouseleave" class="side-menu-item-logout" (click)="logout()"> <svg><use xlink:href="#logout-icon"></use></svg></li>
+  
+  <ng-template #adminTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>Administration</ng-template>
+  <ng-template #dashTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>My Dashboard</ng-template>
+  <ng-template #libTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>My Libary</ng-template>
+  <ng-template #analyticsTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>Analytics</ng-template>
+  <ng-template #logoutTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>Logout</ng-template>
 </ul>

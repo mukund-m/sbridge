@@ -37,6 +37,7 @@ import { DateService } from './firebase-services/date.service';
 import { FirebaseQuizService } from './firebase-services/firebase-quiz.service';
 import { FirebaseModuleService } from './firebase-services/firebase-module.service';
 import { FirebaseCloudFunctionService } from './firebase-services/firebase-cloud-function.service';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 @NgModule({
   declarations: [
     AppComponent,
@@ -55,7 +56,7 @@ import { FirebaseCloudFunctionService } from './firebase-services/firebase-cloud
     ReactiveFormsModule,
     HttpClientModule,
     ServiceWorkerModule.register('/ngsw-worker.js', { enabled: environment.production }),
-
+    NgbModule.forRoot(),
     AngularFireAuthModule,
     AngularFirestoreModule,
     AngularFireModule.initializeApp(firebaseConfig),

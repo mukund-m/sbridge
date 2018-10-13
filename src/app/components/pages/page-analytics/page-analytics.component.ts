@@ -124,7 +124,7 @@ export class PageAnalyticsComponent implements OnInit {
     this.getUsers().then(result => { this.getClients(); });
   }
 
-  onSelect(event: any): void {
+  onSelect(event: any, target): void {
     console.log(event);
     for (const user of this.users) {
       if (event.name.split(' ')[0] === user.firstName) {
@@ -133,6 +133,7 @@ export class PageAnalyticsComponent implements OnInit {
     }
     this.buildLineData();
     this.buildMeanData();
+    target.scrollIntoView();
   }
 
   getRole() {
@@ -181,6 +182,7 @@ export class PageAnalyticsComponent implements OnInit {
           client = this._authenticationService.client;
         }
         this.firebaseModuleService.getModules(client._id).subscribe((modules)=>{
+          this.clientModules = [];
           for (let module of modules) {
             this.clientModules.push(module);
           }

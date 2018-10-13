@@ -14,7 +14,9 @@
         <h4 class="title2">Administrative Tools</h4>
         <div class="row">
           <ng-container *ngFor="let administrativeItem of administrativeItems">
-            <div class="col-12 col-md-6 col-lg-4 col-xl-2" *ngIf="administrativeItem.isActive && canView(administrativeItem)">
+              <ng-template #adminTooltip><i class="fa fa-info-circle" aria-hidden="true"></i>{{administrativeItem.tooltip}}</ng-template>
+            <div [ngbPopover]="adminTooltip"  triggers="mouseenter:mouseleave"
+             class="col-12 col-md-6 col-lg-4 col-xl-2" *ngIf="administrativeItem.isActive && canView(administrativeItem)">
               <a [routerLink]="administrativeItem.URI">
                 <div class="administrative-tool-container bottom-shadow" [ngStyle]="{background: themeService.color?.primaryColor}">
                   <div class="administrative-tool featured d-flex align-items-center justify-content-center">
@@ -36,3 +38,4 @@
     </div>
   </div>
 </div>
+
