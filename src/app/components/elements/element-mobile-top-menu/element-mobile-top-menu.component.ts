@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {ThemeService} from "../../../services/theme.service";
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-element-mobile-top-menu',
@@ -10,16 +11,16 @@ export class ElementMobileTopMenuComponent implements OnInit {
   isToggled: Boolean = false;
 
   constructor(
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('id');
-    window.location.href = '/signin';
+    this.authService.logOut()
+    
   }
 
 }
