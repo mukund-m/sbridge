@@ -27,6 +27,7 @@ export class AuthService {
     private afs: AngularFirestore,
     private authenticationService: AuthenticationService,
     private firebaseClientService: FirebaseClientService,
+    private themeService: ThemeService,
     private router: Router) {
     InitFirestore.init()
       this.afAuth.auth.onAuthStateChanged(user=>{
@@ -69,7 +70,7 @@ export class AuthService {
           this.firebaseClientService.getCurrentClient(this.currentUser.client_id).subscribe((client) => {
             this.currentClient = client;
             this.authenticationService.client = client;
-           // this.themeservice.initialize(client);
+            this.themeService.initialize(client);
           })
         })
       }else {
