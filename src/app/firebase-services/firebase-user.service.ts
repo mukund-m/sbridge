@@ -55,7 +55,10 @@ export class FirebaseUserService {
         if(result.user) {
           user.isActivated = true;
           user.uid = result.user.uid;
+          user.creationDate = new Date();
+          
          this.collectionRef.add(user).then((result)=>{
+          this.authService.sendPasswordResetEmail(user.email);
           resolve(result);
           }).catch((error)=>{
             reject(error);

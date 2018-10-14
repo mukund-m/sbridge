@@ -139,6 +139,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
   }
 
   open(content) {
+    this.uploadSuccess = false;
     this.modalRef = this.modalService.open(content);
   }
 
@@ -247,6 +248,7 @@ export class PageUsersComponent extends BasePage implements OnInit {
 
   uploadFile() {
     this.modalLoading = true;
+    this.uploadSuccess = false;
     if(!this.uploadedFile) {
       this.modalFailure = true;
       this.modalResultMessage = 'Please choose a file';
@@ -271,13 +273,22 @@ export class PageUsersComponent extends BasePage implements OnInit {
                   this.modalSuccess = true;
                   let message = '';
                   if(result.successList.length > 0) {
-                    result.successList.length + ' Users Created Successfully '
+                    message = message + ' ' + result.successList.length + ' Users Created Successfully \n'
+                    this.sendResetMail(result.successList).then(()=>{
+                      if(result.failedList.length > 0) {
+                        message = message + ' Failed to create '+ result.failedList.length  + ' users ';
+                      }
+                      this.modalResultMessage = message;
+                      this.modalLoading = false;
+                    });
+                  } else{
+                    if(result.failedList.length > 0) {
+                      message = message + ' Failed to create '+ result.failedList.length  + ' users ';
+                    }
+                    this.modalResultMessage = message;
+                    this.modalLoading = false;
                   }
-                  if(result.failedList.length > 0) {
-                    message = message + ' Failed to create '+ result.failedList.length  + ' users \n';
-                  }
-                  this.modalResultMessage = message;
-                  this.modalLoading = false;
+                  
                 }).catch((error)=>{
                   this.modalFailure = true;
                   this.modalResultMessage = error;
@@ -293,6 +304,27 @@ export class PageUsersComponent extends BasePage implements OnInit {
 
           fileReader.readAsText(this.uploadedFile, "UTF-8");
     }
+  }
+
+  sendResetMail(userList) {
+    return new Promise((resolve, reject)=>{
+      this.modalResultMessage = 'Sending mails to users';
+      let count = 0;
+      for(let user of userList) {
+        this.authService.resetPassword(user.user.email).then(()=>{
+          count = count + 1;
+          if(count == userList.length) {
+            resolve();
+          }
+        }).catch((error)=>{
+          count = count + 1;
+          if(count == userList.length) {
+            resolve();
+          }
+        })
+      }
+    })
+    
   }
 
   validateFileInput(input: string) {

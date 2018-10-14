@@ -12,6 +12,7 @@ import { AuthService } from './services/auth.service';
 export class AppComponent implements OnInit {
   title = 'app';
   authCheckDone: boolean = false;
+  authenticated = false;
   constructor(
     public authenticationService: AuthenticationService,
     public navigationService: NavigationService,
@@ -23,7 +24,12 @@ export class AppComponent implements OnInit {
     this.navigationService.appLoading = false;
     this.navigationService.appLoadingMessage = 'Loading...';
     this.authService.isLoggedIn().then((user)=> {
-      this.authCheckDone = true;
+      setTimeout(()=>{
+        this.authCheckDone = true;
+      }, 1000)
+    })
+    this.authService.loggedInSubject.subscribe((value)=>{
+      this.authenticated = value; 
     })
   }
 }

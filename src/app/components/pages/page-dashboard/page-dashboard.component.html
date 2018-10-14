@@ -34,7 +34,7 @@
                       <div class="profile-name">
                         Welcome {{_authenticationService.user.firstName}} {{_authenticationService.user.lastName}}
                       </div>
-                      <div class="profile-points">You have <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{_authenticationService.user.points}}</span> points</div>
+                      <div *ngIf="_authenticationService.user.role == 'user'" class="profile-points">You have <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{_authenticationService.user.points}}</span> points</div>
                       <button class="button" routerLink="/dashboard/libraries" [ngStyle]="{'background': themeService.color?.primaryColor}">My Library</button>
                     </div>
                   </div>

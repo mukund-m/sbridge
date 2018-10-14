@@ -35,7 +35,7 @@
                         {{userService.selectedUser.firstName}} {{userService.selectedUser.lastName}}
                       </div>
                       <div class="profile-points">Has earned <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{userService.selectedUser.points}}</span> points</div>
-                      <div class="date-joined">Joined on <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{(userService.selectedUser.creationDate | date: "longDate") || 'No date set'}}</span></div>
+                      <div class="date-joined">Joined on <span [ngStyle]="{'color': themeService.color?.primaryColor}">{{(userService.selectedUser.creationDate) || 'No date set'}}</span></div>
                     </div>
                   </div>
                 </div>

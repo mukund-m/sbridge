@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { Observable } from 'rxjs';
 import 'rxjs/Rx';
 import { Client } from '../models/client';
+import { FirebaseCloudFunctionService } from './firebase-cloud-function.service';
 
 @Injectable()
 export class FirebaseClientService {
@@ -13,7 +14,8 @@ export class FirebaseClientService {
   collectionRef: AngularFirestoreCollection<Client> = null;
   items: Observable<Client[]>;
 
-  constructor(public afs: AngularFirestore) { 
+  constructor(public afs: AngularFirestore,
+    private cloudService: FirebaseCloudFunctionService) { 
      
       this.afs.firestore.settings({ timestampsInSnapshots: true });
       this.collectionRef = this.afs.collection(this.basePath);
@@ -52,8 +54,18 @@ export class FirebaseClientService {
   }
 
   delete(fskey: string): Promise<any> {
-    const document: AngularFirestoreDocument<Client> = this.afs.doc(this.basePath+'/'+fskey);
-    return document.delete();
+    return new Promise((resolve, rejecct)=>{
+      const document: AngularFirestoreDocument<Client> = this.afs.doc(this.basePath+'/'+fskey);
+      let promise =  document.delete();
+      promise.then(()=>{
+        this.cloudService.deleteClientUsers(fskey).then(()=>{
+          resolve();
+        }).catch((error)=>{
+          rejecct(error)
+        })
+      })
+    })
+    
   }
 
  

@@ -291,8 +291,16 @@ export class PageLibrariesComponent extends BaseSubPage implements OnInit {
     if (this.newModuleFormGroup.valid) {
       this.modalLoading = true;
       this.loadingStatus = 'Adding new module...';
-      if (this._authenticationService.user.role === 'administrator') {
-        this.firebaseModuleService.addModule(this.newModuleFormGroup.value.client, this.newModuleFormGroup.value).then(()=>{
+      let client_id;
+      if(this._authenticationService.user.role == 'administrator') {
+        client_id = this.newModuleFormGroup.value.client;
+      } else if (this._authenticationService.user.role == 'client') {
+        client_id = this._authenticationService.user.client_id
+        this.newModuleFormGroup.value.client = client_id;
+      }
+      if (this._authenticationService.user.role === 'administrator' || 
+      this._authenticationService.user.role == 'client') {
+        this.firebaseModuleService.addModule(client_id, this.newModuleFormGroup.value).then(()=>{
           this.modalLoading = false;
           this.modalSuccess = true;
           this.modalResultMessage = 'Module saved successfully'

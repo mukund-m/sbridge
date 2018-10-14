@@ -1,4 +1,5 @@
-<div *ngIf="!authCheckDone"> 
+<div *ngIf="!authCheckDone">
+    <app-element-navigation *ngIf="!authenticated" ></app-element-navigation> 
     <div class="page-container">
         <div class="page-loading-container d-flex align-items-center" >
           <div class="full-width text-center">
@@ -16,7 +17,7 @@
 </div>
 <div *ngIf="authCheckDone"> 
 
-<app-element-navigation ></app-element-navigation>
+<app-element-navigation *ngIf="!authenticated" ></app-element-navigation>
 <div class="element-container">
   <div class="side-menu-container d-none d-md-table-cell" *ngIf="authService.authenticated">
     <app-element-side-menu></app-element-side-menu>

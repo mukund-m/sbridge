@@ -149,6 +149,7 @@ export class PageAnalyticsComponent implements OnInit {
         return this.getModulesStatistics();
       }).then(modulesStatisticsResult => {
       }).catch(error => {
+        console.log(error);
         this.failure = true;
         this.resultMessage = error.message;
       });
@@ -167,22 +168,27 @@ export class PageAnalyticsComponent implements OnInit {
           for (const client of clients) {
             if (client.modules && client.modules[0] == undefined) {
               client.modules = [];
-            }
-            for (let module of client.modules) {
-              this.clientModules.push(module);
-            }
+            } 
+              for (let module of client.modules) {
+                this.clientModules.push(module);
+              }
+            
+            
           }
           resolve(clients);
         })
       } else{
-        let client;
+        let client_id;
         if(this.getRole() == 'administrator' && this.selectedClient) {
-          client = this.selectedClient;
+          client_id = this.selectedClient._id;
         }else if(this.getRole() == 'client') {
-          client = this._authenticationService.client;
+          client_id = this._authenticationService.user.client_id
         }
-        this.firebaseModuleService.getModules(client._id).subscribe((modules)=>{
+        this.firebaseModuleService.getModules(client_id).subscribe((modules)=>{
           this.clientModules = [];
+          if (modules && modules[0] == undefined) {
+            modules = [];
+          } 
           for (let module of modules) {
             this.clientModules.push(module);
           }
@@ -338,7 +344,10 @@ export class PageAnalyticsComponent implements OnInit {
 
       })
     } else {
-      this.userForm.patchValue({ client: this.clientService.client });
+      if(this.userForm) {
+        this.userForm.patchValue({ client: this.clientService.client });
+      }
+      
     }
   }
 

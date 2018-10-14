@@ -1,6 +1,6 @@
 import { first, map } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
 import { Router } from '@angular/router';
 
 import { AngularFireAuth } from 'angularfire2/auth';
@@ -21,6 +21,8 @@ export class AuthService {
   public currentUser: User;
   public currentClient: Client;
   public uid: string = null;
+  public  loggedInSubject: Subject<boolean> = new Subject()
+
   constructor(private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
     private authenticationService: AuthenticationService,
@@ -63,7 +65,7 @@ export class AuthService {
         this.getCurrentUser().subscribe((users: User[]) => {
           this.currentUser = users[0];
           this.authenticationService.user = this.currentUser;
-          
+          this.loggedInSubject.next(true);
           this.firebaseClientService.getCurrentClient(this.currentUser.client_id).subscribe((client) => {
             this.currentClient = client;
             this.authenticationService.client = client;
@@ -91,6 +93,7 @@ export class AuthService {
       .then(() => {
         this.authenticated = false;
         this.uid = undefined;
+        this.loggedInSubject.next(false);
         this.authenticationService.isLoggedIn = false;
         window.location.href = '/signin';
       });

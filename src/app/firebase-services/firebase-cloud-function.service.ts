@@ -45,6 +45,18 @@ export class FirebaseCloudFunctionService {
     })
 }
 
+public deleteClientUsers(client_id) {
+  return new Promise((resolve, reject)=>{
+    
+    this.afAuth.idToken.subscribe((idToken)=>{ 
+      const headers = new HttpHeaders({'Authorization':'Bearer ' + idToken});
+      return this.http.post(this.baseUrl + '/deleteClientsers',{client_id: client_id}, {headers}).subscribe((result)=>{
+        resolve(result);
+      })
+    })
+  })
+}
+
   public uploadUsers(uploadObj) {
     return new Promise((resolve, reject)=>{
       
